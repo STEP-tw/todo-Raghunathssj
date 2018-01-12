@@ -3,4 +3,3 @@ node_modules/
 .DS_Store
 ss.js
 package-lock.json
-public/

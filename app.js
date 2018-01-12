@@ -17,10 +17,23 @@ let logRequest = (req,res)=>{
   console.log(`${req.method} ${req.url}`);
 }
 
+
+const redirectLoggedOutUserToLogin = (req,res)=>{
+  if(req.urlIsOneOf(['/']) && !req.user) res.redirect('/login');
+};
+
 let app = WebApp.create();
+app.use(redirectLoggedOutUserToLogin);
+
 app.get('/',(req,res)=>{
   res.statusCode = 200;
   res.write("");
+  res.end();
+});
+
+app.get('/login',(req,res)=>{
+  res.statusCode = 200;
+  res.write(fs.readFileSync('./Public/html/login.html'));
   res.end();
 });
 
