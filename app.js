@@ -18,5 +18,10 @@ let logRequest = (req,res)=>{
 }
 
 let app = WebApp.create();
+app.get('/',(req,res)=>{
+  res.statusCode = 200;
+  res.write("");
+  res.end();
+});
 
 module.exports = app;

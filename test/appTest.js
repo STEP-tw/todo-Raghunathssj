@@ -14,4 +14,13 @@ describe('app',()=>{
       })
     })
   })
+  describe('GET /',()=>{
+    it('gives an empty page',done=>{
+      request(app,{method:'GET',url:'/'},(res)=>{
+        th.status_is_ok(res);
+        assert.equal(res.body,"");
+        done();
+      })
+    })
+  })
 })
