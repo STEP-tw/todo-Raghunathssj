@@ -65,4 +65,13 @@ describe('app',()=>{
       })
     })
   })
+  describe('POST /logout',()=>{
+    it('redirects to loginPage with an expiring cookie',done=>{
+      request(app,{method:'POST',url:'/logout'},res=>{
+        th.should_be_redirected_to(res,'/login');
+        th.should_have_expiring_cookie(res,'sessionid','0');
+        done();
+      })
+    })
+  })
 })

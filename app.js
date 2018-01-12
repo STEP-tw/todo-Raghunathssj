@@ -137,7 +137,7 @@ app.post('/create',(req,res)=>{
   let prevData = user;
   user.makeTODO();
   storeUserData(_user,prevData,user);
-  let html = `<h1><a href="/"><<</a>TODO</h1>`;
+  let html = `<h1><a href="/"><<</a>TODO</h1> <br> <form action="/logout"method="post"><input type="submit" name="logout" value="logout"></form>`;
   res.statusCode = 200;
   res.setHeader('Content-Type','text/html');
   res.write(html);
@@ -149,5 +149,11 @@ app.post('/todoList',(req,res)=>{
   _user = JSON.parse(_users);
   let user = _users.find(u=>u.user == req.user.name);
   return user.getTodos;
+})
+
+app.post('/logout',(req,res)=>{
+  res.setHeader('Set-Cookie',`sessionid=0; Max-Age=5`);
+  delete req.user.sessionid;
+  res.redirect('/login');
 })
 module.exports = app;
