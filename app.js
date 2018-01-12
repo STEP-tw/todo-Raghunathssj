@@ -1,8 +1,10 @@
 const fs = require('fs');
 const timeStamp = require('./time.js').timeStamp;
 const WebApp = require('./webapp');
+const User = require('./public/scripts/user.js');
 
 let registered_users = [{userName:'raghu',password:'raghu',name:'Raghunath'}];
+let _users = [];
 
 let loadUser = (req,res)=>{
   let sessionid = req.cookies.sessionid;
@@ -57,7 +59,6 @@ const serveFile = function(req,res) {
   respondWithStatus(req,res,path,contentType);
 };
 
-
 let toS = o=>JSON.stringify(o,null,2);
 
 
@@ -73,15 +74,30 @@ let logRequest = (req,res)=>{
   console.log(`${req.method} ${req.url}`);
 }
 
+const storeUserData = function(fileData,prevData,newData){
+  fileData.find((data,i,arr)=>{
+    if(data==prevdata)
+      arr[i]=newData;
+  });
+  return;
+}
 
 const redirectLoggedOutUserToLogin = (req,res)=>{
   if(req.urlIsOneOf(['/']) && !req.user) res.redirect('/login');
 };
 
+const redirectUsersWithoutTodoToHome = (req,res)=>{
+  let _users = fs.readFileSync('./data/_users.json');
+  _user = JSON.parse(_users);
+  let user = _users.find(u=>req.user && u.user == req.user.name);
+  if(req.urlIsOneOf(['/todoList']) && !user) res.redirect('/');
+}
+
 let app = WebApp.create();
 app.use(logRequest);
 app.use(loadUser);
 app.use(redirectLoggedOutUserToLogin);
+app.use(redirectUsersWithoutTodoToHome);
 app.use(serveFile);
 
 app.get('/',(req,res)=>{
@@ -111,4 +127,27 @@ app.post('/login',(req,res)=>{
   res.redirect('/');
 })
 
+app.post('/create',(req,res)=>{
+  let _users = fs.readFileSync('./data/_users.json');
+  _user = JSON.parse(_users);
+  let user = _users.find(u=>u.user==req.user.name);
+  if(!user){
+    user = new User(req.user.name);
+  }
+  let prevData = user;
+  user.makeTODO();
+  storeUserData(_user,prevData,user);
+  let html = `<h1><a href="/"><<</a>TODO</h1>`;
+  res.statusCode = 200;
+  res.setHeader('Content-Type','text/html');
+  res.write(html);
+  res.end();
+})
+
+app.post('/todoList',(req,res)=>{
+  let _users = fs.readFileSync('./data/_users.json');
+  _user = JSON.parse(_users);
+  let user = _users.find(u=>u.user == req.user.name);
+  return user.getTodos;
+})
 module.exports = app;

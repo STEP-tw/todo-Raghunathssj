@@ -6,8 +6,13 @@
   </head>
   <body>
     <p>userName</p>
-    <input type="button" name="create" value="create">
-    <input type="button" name="TODOList " value="TODO list">
-    Search : <input type="search">
+    <form action="/create" method="post">
+      <input id="create" type="submit" name="create" value="create">
+    </form>
+    <br>
+    <form action="/todoList" method="post">
+      <input id="todoList" type="submit" name="TODOList " value="TODO list">
+    </form>
+    <br>
   </body>
 </html>

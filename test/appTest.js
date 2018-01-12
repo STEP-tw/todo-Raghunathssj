@@ -41,9 +41,26 @@ describe('app',()=>{
       })
     })
     it('redirects to /login with message for invalid user',done=>{
-      request(app,{method:'POST',url:'/login',body:'username=badUser'},res=>{
+      request(app,{method:'POST',url:'/login',body:'userName=badUser'},res=>{
         th.should_be_redirected_to(res,'/login');
         th.should_have_expiring_cookie(res,'message','login failed');
+        done();
+      })
+    })
+  })
+  describe('POST /create',()=>{
+    it('serves the create page',done=>{
+      request(app,{method:'POST',url:'/create',user:{name:'Raghunath'}},res=>{
+        th.status_is_ok(res);
+        th.content_type_is(res,'text/html');
+        done();
+      })
+    })
+  })
+  describe('POST /todoList',()=>{
+    it('redirects to home',done=>{
+      request(app,{method:'POST',url:'/todoList'},res=>{
+        th.should_be_redirected_to(res,'/');
         done();
       })
     })
