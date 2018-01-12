@@ -21,13 +21,6 @@ describe('app',()=>{
         done();
       })
     })
-    it.skip('gives an empty page if the user is logged in',done=>{
-      request(app,{method:'GET',url:'/'},(res)=>{
-        th.status_is_ok(res);
-        assert.equal(res.body,"");
-        done();
-      })
-    })
   })
   describe('GET /login',()=>{
     it('serves the login page',done=>{
