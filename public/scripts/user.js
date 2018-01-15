@@ -4,16 +4,29 @@ class User {
   constructor(userName) {
     this.user = userName;
     this.todos= [];
+    this.currentTodo = '';
   }
-  makeTODO(){
-    let todo = new TODO();
+  makeTODO(title,description){
+    let todo = new TODO(title,description);
+    this.currentTodo = todo;
     this.todos.push(todo);
   }
   getTodos(){
     return this.todos;
   }
+  makeItem(description){
+    this.currentTodo.makeItem(description);
+  }
+  getItemsHtml(){
+    return this.currentTodo.getItemsHtml();
+  }
+  setButton(title){
+    return `<input type=submit value=${title}>`;
+  }
   ToHTML(){
-    return this.todos.reduce((prev,todo)=>{return prev + todo.toHtml();},'');
+    let buttons = this.todos.map(todo=>{return this.setButton(todo.title)})
+    let html = buttons.join('<br>');
+    return html;
   }
 }
 
