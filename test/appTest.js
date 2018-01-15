@@ -74,4 +74,21 @@ describe('app',()=>{
       })
     })
   })
+  describe('GET /createItem',()=>{
+    it('serves create page with given items',done=>{
+      request(app,{method:'GET',url:'/createItem',user:{name:'Raghunath'}},res=>{
+        th.status_is_ok(res);
+        th.content_type_is(res,'text/html');
+        done();
+      })
+    })
+  }),
+  describe('POST /createItem',()=>{
+    it('stores the given item',done=>{
+      request(app,{method:'POST',url:'/createItem',user:{name:'Raghunath'}},res=>{
+        th.status_is_ok(res);
+        done();
+      })
+    })
+  })
 })

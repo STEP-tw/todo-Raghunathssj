@@ -146,6 +146,7 @@ app.post('/login',(req,res)=>{
 app.post('/createItem',(req,res)=>{
   let item = req.body.item;
   currentUser.makeItem(item);
+  res.statusCode = 200;
   res.end();
 })
 
