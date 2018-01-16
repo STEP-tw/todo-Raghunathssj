@@ -1,12 +1,16 @@
 class Item {
-  constructor(description) {
+  constructor(description,id) {
     this.description = description;
+    this.id = id;
   }
   toHtml(){
-    return `<p>${this.description}</p>`;
+    return `<input type=checkbox value=item onclick= ${this.display}> ${this.description}`;
+  }
+  display(){
+    alert('hello');
   }
   mark(){
-    return `<strike>${this.description}</strike>`;
+    return `<p><strike> ${this.description} </strike><input id=${this.id}  class=item type=submit value=undone></p>`;
   }
 }
 

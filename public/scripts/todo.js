@@ -1,13 +1,19 @@
 const Item = require('./item.js');
 
 class TODO {
-  constructor(title,description) {
+  constructor(title,description,id) {
     this.title = title;
+    this.itemId = 0;
+    this.id = id;
     this.description = description;
     this.items = [];
   }
+  getTitle(){
+    return this.title;
+  }
   makeItem(description){
-    let item = new Item(description);
+    let item = new Item(description,this.itemId);
+    ++this.itemId;
     this.items.push(item);
   }
   addItem(description){

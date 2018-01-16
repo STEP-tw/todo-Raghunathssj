@@ -4,15 +4,21 @@ class User {
   constructor(userName) {
     this.user = userName;
     this.todos= [];
+    this.todoId = 0;
     this.currentTodo = '';
   }
   makeTODO(title,description){
-    let todo = new TODO(title,description);
+    let todo = new TODO(title,description,this.todoId);
     this.currentTodo = todo;
+    ++this.todoId;
     this.todos.push(todo);
   }
-  getTodos(){
-    return this.todos;
+  getTodosHtml(){
+    let html = '';
+    for(let i=0;i<this.todos.length;i++){
+      html+`<p>${this.todos[i].getTitle()}</p>`;
+    }
+    return html;
   }
   makeItem(description){
     this.currentTodo.makeItem(description);

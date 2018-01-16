@@ -91,7 +91,13 @@ const createUserTodos = function(userName){
   return user;
 }
 
-let forbiddenUrls = ['/','/create','/todoList','/html/new.html','/createItem'];
+const getData = function(path,message){
+  let content = fs.readFileSync(path,'utf8');
+  content = content.replace(/message/,message);
+  return content;
+}
+
+let forbiddenUrls = ['/','/create','/todoList','/html/new.html','/createItem', '/logout'];
 
 const redirectForbiddenUrlsToLogin = (req,res)=>{
   if(req.urlIsOneOf(forbiddenUrls) && !req.user) res.redirect('/login');
@@ -121,11 +127,17 @@ app.get('/',(req,res)=>{
   res.statusCode = 200;
   res.write(home);
   res.end();
-})
+});
 
 app.get('/login',(req,res)=>{
+  let content = '';
+  let path = './Public/html/login.html';
+  if(req.cookies.message)
+    content = getData(path,req.cookies.message);
+  else
+    content = getData(path,'');
   res.statusCode = 200;
-  res.write(fs.readFileSync('./Public/html/login.html'));
+  res.write(content);
   res.end();
 });
 
@@ -141,14 +153,14 @@ app.post('/login',(req,res)=>{
   res.setHeader('Set-Cookie',`sessionid=${sessionid}`);
   user.sessionid = sessionid;
   res.redirect('/');
-})
+});
 
 app.post('/createItem',(req,res)=>{
   let item = req.body.item;
   currentUser.makeItem(item);
   res.statusCode = 200;
   res.end();
-})
+});
 
 app.get('/createItem',(req,res)=>{
   res.statusCode = 200;
@@ -159,7 +171,7 @@ app.get('/createItem',(req,res)=>{
   fs.writeFileSync('./public/scripts/storeitems.js',data);
   res.write(fs.readFileSync('./public/html/createTodo.html'));
   res.end();
-})
+});
 
 app.post('/create',(req,res)=>{
   let title = req.body.title;
@@ -169,16 +181,19 @@ app.post('/create',(req,res)=>{
   res.setHeader('Content-Type','text/html');
   res.write(fs.readFileSync('./public/html/createTodo.html'));
   res.end();
-})
+});
 
 app.get('/todoList',(req,res)=>{
+  res.statusCode = 200;
+  res.setHeader('Content-Type','text/plain');
+  res.write(currentUser.getTodosHtml());
   res.end();
-})
+});
 
 app.get('/logout',(req,res)=>{
-  fs.writeFileSync('./public/scripts/storeitems.js','')
+  fs.writeFileSync('./public/scripts/storeitems.js','');
   res.setHeader('Set-Cookie',`sessionid=0; Max-Age=5`);
   delete req.user.sessionid;
   res.redirect('/login');
-})
+});
 module.exports = app;

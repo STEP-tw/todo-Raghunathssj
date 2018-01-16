@@ -33,15 +33,50 @@ describe('app',()=>{
     })
   })
   describe('POST /login',()=>{
-    it('redirects to home for valid user',done=>{
+    it('redirects to home for valid user and password',done=>{
       request(app,{method:'POST',url:'/login',body:'userName=raghu&password=raghu'},res=>{
         th.should_be_redirected_to(res,'/');
         th.should_not_have_cookie(res,'message');
         done();
       })
     })
-    it('redirects to /login with message for invalid user',done=>{
-      request(app,{method:'POST',url:'/login',body:'userName=badUser'},res=>{
+    it('redirects to /login with message if user name and password is not given ',done=>{
+      request(app,{method:'POST',url:'/login',body:'userName=&password='},res=>{
+        th.should_be_redirected_to(res,'/login');
+        th.should_have_expiring_cookie(res,'message','login failed');
+        done();
+      })
+    })
+    it('redirects to /login with message if user name is not given ',done=>{
+      request(app,{method:'POST',url:'/login',body:'userName=&password=raghu'},res=>{
+        th.should_be_redirected_to(res,'/login');
+        th.should_have_expiring_cookie(res,'message','login failed');
+        done();
+      })
+    })
+    it('redirects to /login with message if password is not given ',done=>{
+      request(app,{method:'POST',url:'/login',body:'userName=raghu&password='},res=>{
+        th.should_be_redirected_to(res,'/login');
+        th.should_have_expiring_cookie(res,'message','login failed');
+        done();
+      })
+    })
+    it('redirects to /login with message if invalid user name is given',done=>{
+      request(app,{method:'POST',url:'/login',body:'userName=raghu&password=raghus'},res=>{
+        th.should_be_redirected_to(res,'/login');
+        th.should_have_expiring_cookie(res,'message','login failed');
+        done();
+      })
+    })
+    it('redirects to /login with message if invalid user name is given',done=>{
+      request(app,{method:'POST',url:'/login',body:'userName=raghus&password=raghu'},res=>{
+        th.should_be_redirected_to(res,'/login');
+        th.should_have_expiring_cookie(res,'message','login failed');
+        done();
+      })
+    })
+    it('redirects to /login with message if invalid user name given and password is given wrongly',done=>{
+      request(app,{method:'POST',url:'/login',body:'userName=raghus&password=raghus'},res=>{
         th.should_be_redirected_to(res,'/login');
         th.should_have_expiring_cookie(res,'message','login failed');
         done();
@@ -67,9 +102,9 @@ describe('app',()=>{
   })
   describe('GET /logout',()=>{
     it('redirects to loginPage with an expiring cookie',done=>{
-      request(app,{method:'GET',url:'/logout'},res=>{
+      request(app,{method:'GET',url:'/logout',user:{name:'Raghunath'}},res=>{
         th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'sessionid','0');
+        th.should_have_expiring_cookie(res,'sessionid',0);
         done();
       })
     })
