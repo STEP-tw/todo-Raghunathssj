@@ -222,6 +222,6 @@ app.get('/createItem',showItems);
 app.get('/new',newTodoPage)
 app.post('/create',todoPage);
 app.get('/todoList',todoList);
-app.get('/logout',logoutPage);
+app.post('/logout',logoutPage);
 
 module.exports = app;

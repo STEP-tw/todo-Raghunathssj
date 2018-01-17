@@ -12,7 +12,9 @@
     <div class="items"></div>
     <input id="item" type="text" name="item" autofocus>
     <input type="submit" value="add item" required onclick="create()">
-    <br>
-    <a href="/logout">logout</a>
+    <br><br>
+    <form action="/logout" method="post">
+      <input type="submit" value="logout">
+    </form>
   </body>
 </html>
