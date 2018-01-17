@@ -85,7 +85,7 @@ describe('app',()=>{
   })
   describe('POST /create',()=>{
     it('serves the create page',done=>{
-      request(app,{method:'POST',url:'/create',user:{name:'Raghunath'}},res=>{
+      request(app,{method:'POST',url:'/create',user:{name:'Raghunath'},body:'title=Title'},res=>{
         th.status_is_ok(res);
         th.content_type_is(res,'text/html');
         done();

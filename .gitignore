@@ -1,7 +1,6 @@
 node_modules/
 *.log
 .DS_Store
-ss.js
 package-lock.json
-data/
 storeItems.js
+_usersData.json

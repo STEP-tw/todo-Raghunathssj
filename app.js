@@ -97,6 +97,19 @@ const getData = function(path,message){
   return content;
 }
 
+const respondWithMsg = function(req,res,file){
+  let content = '';
+  let path = `./public${file}`;
+  if(req.cookies.message)
+    content = getData(path,req.cookies.message);
+  else
+    content = getData(path,'');
+  res.statusCode = 200;
+  res.write(content);
+  res.end();
+  return;
+};
+
 let forbiddenUrls = ['/','/create','/todoList','/html/new.html','/createItem', '/logout'];
 
 const redirectForbiddenUrlsToLogin = (req,res)=>{
@@ -114,34 +127,21 @@ const redirectUsersWithoutTodoToHome = (req,res)=>{
   if(req.urlIsOneOf(['/todoList']) && !user) res.redirect('/');
 }
 
-let app = WebApp.create();
-app.use(logRequest);
-app.use(loadUser);
-app.use(redirectForbiddenUrlsToLogin);
-app.use(redirectLoginUsersToHome);
-app.use(serveFile);
-
-app.get('/',(req,res)=>{
+const homepage = (req,res)=>{
   let home = fs.readFileSync('./public/html/index.html','utf8');
   home = home.replace(/userName/,`welcome ${req.user.name}`);
   res.statusCode = 200;
   res.write(home);
   res.end();
-});
+  return;
+};
 
-app.get('/login',(req,res)=>{
-  let content = '';
-  let path = './Public/html/login.html';
-  if(req.cookies.message)
-    content = getData(path,req.cookies.message);
-  else
-    content = getData(path,'');
-  res.statusCode = 200;
-  res.write(content);
-  res.end();
-});
+const loginPage = (req,res)=>{
+  respondWithMsg(req,res,'/html/login.html');
+  return;
+};
 
-app.post('/login',(req,res)=>{
+const checkUser = (req,res)=>{
   let user = registered_users.find(u=>u.userName==req.body.userName && u.password == req.body.password);
   if(!user) {
     res.setHeader('Set-Cookie',`message=login failed; Max-Age=5`);
@@ -153,16 +153,49 @@ app.post('/login',(req,res)=>{
   res.setHeader('Set-Cookie',`sessionid=${sessionid}`);
   user.sessionid = sessionid;
   res.redirect('/');
-});
+};
 
-app.post('/createItem',(req,res)=>{
+const addItem = (req,res)=>{
   let item = req.body.item;
   currentUser.makeItem(item);
   res.statusCode = 200;
   res.end();
-});
+};
 
-app.get('/createItem',(req,res)=>{
+const todoPage = (req,res)=>{
+  let title = req.body.title;
+  if(!title){
+    res.setHeader('Set-Cookie',`message=Title required; Max-Age=5`)
+    res.redirect('/new');
+    return;
+  }
+  let description = req.body.description;
+  currentUser.makeTODO(title,description);
+  res.statusCode = 200;
+  res.setHeader('Content-Type','text/html');
+  res.write(fs.readFileSync('./public/html/createTodo.html'));
+  res.end();
+};
+
+const newTodoPage = (req,res)=>{
+  respondWithMsg(req,res,'/html/new.html');
+};
+
+const todoList = (req,res)=>{
+  res.statusCode = 200;
+  res.setHeader('Content-Type','text/plain');
+  res.write(currentUser.getTodosHtml());
+  res.end();
+};
+
+const logoutPage = (req,res)=>{
+  fs.writeFileSync('./public/scripts/storeitems.js','');
+  res.setHeader('Set-Cookie',`sessionid=0; Max-Age=5`);
+  delete req.user.sessionid;
+  res.redirect('/login');
+};
+
+const showItems = (req,res)=>{
   res.statusCode = 200;
   res.setHeader('Content-Type','text/html');
   let html = currentUser.getItemsHtml();
@@ -171,29 +204,24 @@ app.get('/createItem',(req,res)=>{
   fs.writeFileSync('./public/scripts/storeitems.js',data);
   res.write(fs.readFileSync('./public/html/createTodo.html'));
   res.end();
-});
+};
 
-app.post('/create',(req,res)=>{
-  let title = req.body.title;
-  let description = req.body.description;
-  currentUser.makeTODO(title,description);
-  res.statusCode = 200;
-  res.setHeader('Content-Type','text/html');
-  res.write(fs.readFileSync('./public/html/createTodo.html'));
-  res.end();
-});
+//=====================================================================
+let app = WebApp.create();
+app.use(logRequest);
+app.use(loadUser);
+app.use(redirectForbiddenUrlsToLogin);
+app.use(redirectLoginUsersToHome);
+app.use(serveFile);
 
-app.get('/todoList',(req,res)=>{
-  res.statusCode = 200;
-  res.setHeader('Content-Type','text/plain');
-  res.write(currentUser.getTodosHtml());
-  res.end();
-});
+app.get('/',homepage);
+app.get('/login',loginPage);
+app.post('/login',checkUser);
+app.post('/createItem',addItem);
+app.get('/createItem',showItems);
+app.get('/new',newTodoPage)
+app.post('/create',todoPage);
+app.get('/todoList',todoList);
+app.get('/logout',logoutPage);
 
-app.get('/logout',(req,res)=>{
-  fs.writeFileSync('./public/scripts/storeitems.js','');
-  res.setHeader('Set-Cookie',`sessionid=0; Max-Age=5`);
-  delete req.user.sessionid;
-  res.redirect('/login');
-});
 module.exports = app;
