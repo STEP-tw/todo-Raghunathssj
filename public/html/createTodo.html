@@ -3,13 +3,16 @@
   <head>
     <meta charset="utf-8">
     <title>TODO</title>
-    <script src="../scripts/create.js" charset="utf-8"></script>
   </head>
   <body>
+    <div><b>message</b></div>
     <a href="/">home page</a>
-    <div class="items"></div>
-    <input id="item" type="text" name="item" autofocus>
-    <input type="submit" value="add item" required onclick="create()">
+    <form action="/create" method="post">
+      Title : <input type="text" name="title" autofocus><br><br>
+      Description : <br>
+      <textarea name="description"rows="3"cols="40" maxlength="100"></textarea>(optional)<br><br>
+      <input type="submit" value="add todo">
+    </form>
     <br><br>
     <form action="/logout" method="post">
       <input type="submit" value="logout">

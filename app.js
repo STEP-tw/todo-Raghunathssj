@@ -1,19 +1,20 @@
 const fs = require('fs');
-const Log = require('./utility/log.js');
+const Log = require('./lib/utility/log.js');
 const WebApp = require('./webapp');
-const DataHandler = require('./public/scripts/todoApp.js');
-const User = require('./public/scripts/user.js');
+const User = require('./lib/models/user.js');
 const StaticFileHandler = require('./lib/models/serveFile.js');
 const SessionHandler = require('./lib/models/sessionManager.js');
+
+//=============================================
 const serveFile = new StaticFileHandler('public', fs).getRequestHandler();
 const log = new Log('./request.log', fs).getRequestHandler();
-let dataHandler = new DataHandler('./data/_usersData.json');
-dataHandler.loadData();
 let sessionHandler = new SessionHandler();
 sessionHandler.addUser('raghu', 'Raghunath', 'raghu');
 sessionHandler.addUser('arvinds', 'Arvind', 'arvinds');
 
+//==============================================
 let loadUser = (req, res) => {
+  console.log(req.url,req.method);
   let sessionid = req.cookies.sessionid;
   let user = sessionHandler.getUserBySessionId(sessionid);
   if (sessionid && user) {
@@ -40,7 +41,7 @@ const respondWithMsg = function(req, res, file) {
   return;
 };
 
-let forbiddenUrls = ['/', '/create', '/todoList', '/html/new.html', '/createItem', '/logout'];
+let forbiddenUrls = ['/', '/create', '/todoList', '/html/new.html', '/createItem', '/logout','/new'];
 
 const redirectForbiddenUrlsToLogin = (req, res) => {
   if (req.urlIsOneOf(forbiddenUrls) && !req.user) res.redirect('/login');
@@ -77,10 +78,8 @@ const checkUser = (req, res) => {
 
 const addItem = (req, res) => {
   let item = req.body.item;
-  todoApp.todos[req.user].addItem(user, item);
+  req.user.addItem(item);
   res.statusCode = 200;
-  let itemsHtml = currentUser.getItemsHtml();
-  res.write(JSON.stringify(itemsHtml));
   res.end();
   return;
 };
@@ -93,28 +92,31 @@ const todoPage = (req, res) => {
     return;
   }
   let description = req.body.description;
-  todoApp.todos[req.user].addTodo(title, description);
+  req.user.addTodo(title, description);
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/html');
-  res.write(fs.readFileSync('./public/html/createTodo.html'));
+  res.write(fs.readFileSync('./public/html/index.html'));
   res.end();
 };
 
 const newTodoPage = (req, res) => {
-  respondWithMsg(req, res, '/html/new.html');
-};
-
-const todoList = (req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.write('');
-  res.end();
+  respondWithMsg(req, res, '/html/createTodo.html');
 };
 
 const logoutPage = (req, res) => {
   sessionHandler.logOut(req, res);
   res.redirect('/login');
 };
+
+const getAllTodo = function(req,res){
+  let allTodo = JSON.stringify(req.user.getAllTodo());
+  res.write(allTodo);
+  res.end();
+}
+
+const todoRequestHandler = function(req,res){
+  // let type =
+}
 
 //=====================================================================
 let app = WebApp.create();
@@ -123,14 +125,16 @@ app.use(loadUser);
 app.use(redirectForbiddenUrlsToLogin);
 app.use(redirectLoginUsersToHome);
 app.use(serveFile);
+// app.use(todoRequestHandler);
 
 app.get('/', homepage);
 app.get('/login', loginPage);
+app.get('/new', newTodoPage)
+
 app.post('/login', checkUser);
 app.post('/createItem', addItem);
-app.get('/new', newTodoPage)
-app.post('/create', todoPage);
-app.get('/todoList', todoList);
 app.post('/logout', logoutPage);
+app.post('/create', todoPage);
+app.post('/getAllTodo',getAllTodo);
 
 module.exports = app;
