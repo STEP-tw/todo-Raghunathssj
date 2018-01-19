@@ -1,35 +1,35 @@
 const Item = require('./item.js');
 
-class TODO {
-  constructor(title,description,id) {
-    this.title = title;
-    this.itemId = 0;
-    this.id = id;
-    this.description = description;
-    this.items = [];
-  }
-  getTitle(){
+const TODO = function(title,description,id) {
+  this.title = title;
+  this.itemId = 0;
+  this.id = id;
+  this.description = description;
+  this.items = [];
+};
+
+TODO.prototype = {
+  getTitle: function(){
     return this.title;
-  }
-  makeItem(description){
+  },
+  makeItem: function(description){
     let item = new Item(description,this.itemId);
     ++this.itemId;
     this.items.push(item);
-  }
-  addItem(description){
+  },
+  addItem: function(description){
     this.makeItem(description);
-  }
-  getItemsHtml(){
-    let html = this.items.reduce((prev,item)=>{return prev + item.toHtml()},'');
-    return html;
-  }
-  titleHtml(){
+  },
+  getItemsHtml: function(){
+    return this.items.map(item=>item.toHtml());
+  },
+  titleHtml: function(){
     return `<h1>${this.title}</h1>`;
-  }
-  descriptionHtml(){
+  },
+  descriptionHtml: function(){
     return `<p>${this.description}</p>`;
-  }
-  toHtml(){
+  },
+  toHtml: function(){
     let titleHtml = this.titleHtml();
     let descriptionHtml = this.descriptionHtml();
     let itemsHtml = this.items.map(item=>{return item.toHtml()});

@@ -1,10 +1,12 @@
 const fs = require('fs');
 const timeStamp = require('./time.js').timeStamp;
 const WebApp = require('./webapp');
+const TodoApp = require('./public/scripts/todoApp.js');
 const User = require('./public/scripts/user.js');
-const _userData = JSON.parse(fs.readFileSync('./data/_usersData.json'));
 
-let currentUser = {};
+let todoApp = new TodoApp('./data/_usersData.json');
+todoApp.loadData();
+
 let registered_users = [{userName:'raghu',password:'raghu',name:'Raghunath'}];
 let _users = [];
 
@@ -74,14 +76,6 @@ const serveFile = function(req,res) {
 
 let toS = o=>JSON.stringify(o,null,2);
 
-const storeUserData = function(fileData,prevData,newData){
-  fileData.find((data,i,arr)=>{
-    if(data==prevdata)
-      arr[i]=newData;
-  });
-  return;
-}
-
 const createUserTodos = function(userName){
   let user = _users.find(u=>u.user==userName)
   if(!user){
@@ -148,7 +142,6 @@ const checkUser = (req,res)=>{
     res.redirect('/login');
     return;
   }
-  currentUser = createUserTodos(user);
   let sessionid = new Date().getTime();
   res.setHeader('Set-Cookie',`sessionid=${sessionid}`);
   user.sessionid = sessionid;
@@ -157,9 +150,12 @@ const checkUser = (req,res)=>{
 
 const addItem = (req,res)=>{
   let item = req.body.item;
-  currentUser.makeItem(item);
+  todoApp.todos[req.user].addItem(user,item);
   res.statusCode = 200;
+  let itemsHtml = currentUser.getItemsHtml();
+  res.write(JSON.stringify(itemsHtml));
   res.end();
+  return;
 };
 
 const todoPage = (req,res)=>{
@@ -170,7 +166,7 @@ const todoPage = (req,res)=>{
     return;
   }
   let description = req.body.description;
-  currentUser.makeTODO(title,description);
+  todoApp.todos[req.user].addTodo(title,description);
   res.statusCode = 200;
   res.setHeader('Content-Type','text/html');
   res.write(fs.readFileSync('./public/html/createTodo.html'));
@@ -184,26 +180,14 @@ const newTodoPage = (req,res)=>{
 const todoList = (req,res)=>{
   res.statusCode = 200;
   res.setHeader('Content-Type','text/plain');
-  res.write(currentUser.getTodosHtml());
+  res.write('');
   res.end();
 };
 
 const logoutPage = (req,res)=>{
-  fs.writeFileSync('./public/scripts/storeitems.js','');
   res.setHeader('Set-Cookie',`sessionid=0; Max-Age=5`);
   delete req.user.sessionid;
   res.redirect('/login');
-};
-
-const showItems = (req,res)=>{
-  res.statusCode = 200;
-  res.setHeader('Content-Type','text/html');
-  let html = currentUser.getItemsHtml();
-  html = JSON.stringify(html);
-  let data = `var html = ${html}`;
-  fs.writeFileSync('./public/scripts/storeitems.js',data);
-  res.write(fs.readFileSync('./public/html/createTodo.html'));
-  res.end();
 };
 
 //=====================================================================
@@ -218,7 +202,6 @@ app.get('/',homepage);
 app.get('/login',loginPage);
 app.post('/login',checkUser);
 app.post('/createItem',addItem);
-app.get('/createItem',showItems);
 app.get('/new',newTodoPage)
 app.post('/create',todoPage);
 app.get('/todoList',todoList);

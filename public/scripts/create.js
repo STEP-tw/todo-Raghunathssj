@@ -1,7 +1,10 @@
 const create = function(){
-  let request = new XMLHttpRequest();
-  request.open("POST",'/createItem');
+  let xhr = new XMLHttpRequest();
+  xhr.open("POST",'/createItem');
   let item = document.getElementById('item').value;
-  request.send(`item=${item}`);
-  window.location.href = '/createItem';
-}
+  xhr.send(`item=${item}`);
+  xhr.onload = function(){
+    document.getElementsByClassName('items')[0].innerHTML = xhr.responseText;
+    document.getElementById('item').value = '';
+  };
+};
