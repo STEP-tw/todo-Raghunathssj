@@ -3,12 +3,12 @@ const User = require('./user.js');
 const Todo = require('./todo.js');
 const Item = require('./item.js');
 
-let TodoApp = function(path){
+let DataHandler = function(path){
   this.path = path;
   this.users = {};
 }
 
-TodoApp.prototype = {
+DataHandler.prototype = {
   loadData: function(){
     this.todos = JSON.parse(fs.readFileSync(this.path));
     if(this.todos == {}) return this.todos;
@@ -24,6 +24,13 @@ TodoApp.prototype = {
     })
     return;
   },
+  addUser: function(userDetails){
+    this.users[userDetails.userName] = {
+      name: userDetails.name,
+      todos: []
+    };
+    return;
+  },
   save: function(){
     let data = JSON.stringify(this.todos,null,2);
     fs.writeFileSync(this.path,data,'utf8');
@@ -31,4 +38,4 @@ TodoApp.prototype = {
   }
 }
 
-module.exports = TodoApp;
+module.exports = DataHandler;

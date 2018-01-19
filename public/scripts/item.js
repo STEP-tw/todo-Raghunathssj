@@ -1,15 +1,17 @@
-const Item = function(description,id) {
-  this.description = description;
-  this.id = id;
-};
-
-Item.prototype = {
-  toHtml: function(){
-    return `<div id=${this.id} onclick=></div><br>`;
-  },
-  mark: function(){
-    return `<p><strike> ${this.description} </strike><input id=${this.id}  class=item type=submit value=undone></p>`;
+class Item {
+  constructor(title,id) {
+    this.title = title;
+    this.id = id;
+    this.status = false;
+  }
+  getTitle(){
+    return this.title;
+  }
+  getStatus(){
+    return this.status;
+  }
+  updateStatus(){
+    this.status = !this.status;
   }
 }
-
 module.exports = Item;
