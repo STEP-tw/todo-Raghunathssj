@@ -37,7 +37,7 @@ const getAllItem = function(){
 
 const updateStatus = function() {
   let itemId = event.target.id;
-  sendRequest('post','/updateItemStatus',loadPage,`itemId=${itemId}`);
+  sendRequest('post','/updateItemStatus',refresh,`itemId=${itemId}`);
 }
 
 const deleteItem = function(event){
