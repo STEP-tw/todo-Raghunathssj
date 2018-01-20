@@ -36,6 +36,7 @@ const respondWithMsg = function(req, res, file) {
   else
     content = getData(path, '');
   res.statusCode = 200;
+  res.setHeader('Content-Type','text/html');
   res.write(content);
   res.end();
   return;
@@ -44,7 +45,7 @@ const respondWithMsg = function(req, res, file) {
 let forbiddenUrls = ['/', '/create', '/todoList', '/html/new.html', '/createItem', '/logout','/new'];
 
 const redirectForbiddenUrlsToLogin = (req, res) => {
-  if (req.urlIsOneOf(forbiddenUrls) && !req.user) res.redirect('/login');
+  if (req.urlIsOneOf(forbiddenUrls) && !req.user || req.url.startsWith('/todo') && !req.user) res.redirect('/login');
 };
 
 const redirectLoginUsersToHome = (req, res) => {
@@ -78,7 +79,7 @@ const checkUser = (req, res) => {
 
 const addItem = (req, res) => {
   let item = req.body.item;
-  req.user.addItem(item);
+  req.user.addTodoItem(item);
   res.statusCode = 200;
   res.end();
   return;
@@ -87,7 +88,7 @@ const addItem = (req, res) => {
 const todoPage = (req, res) => {
   let title = req.body.title;
   if (!title) {
-    res.setHeader('Set-Cookie', `message=Title required; Max-Age=5`)
+    res.setHeader('Set-Cookie', `message=Title required; Max-Age=5`);
     res.redirect('/new');
     return;
   }
@@ -108,14 +109,30 @@ const logoutPage = (req, res) => {
   res.redirect('/login');
 };
 
-const getAllTodo = function(req,res){
+const getAllTodo = (req,res)=>{
   let allTodo = JSON.stringify(req.user.getAllTodo());
   res.write(allTodo);
   res.end();
 }
 
-const todoRequestHandler = function(req,res){
-  // let type =
+const todoRequestHandler = (req,res)=>{
+  let todoKey = req.url.match(/[\d+]/);
+  todoKey = todoKey && todoKey[0];
+  if(req.url.startsWith('/todo') && req.user.isValidTodo(todoKey)){
+    let todoHtml = req.user.getTodoHtml(todoKey);
+    let formData = fs.readFileSync('./public/html/createItem.html','utf8');
+    res.setHeader('content-Type','text/html');
+    res.statusCode = 200;
+    res.write(formData);
+    res.write(todoHtml);
+    res.end();
+  }
+}
+
+const getAllItem = (req,res)=>{
+  let allItem = JSON.stringify(req.user.getAllItem());
+  res.write(allItem);
+  res.end();
 }
 
 //=====================================================================
@@ -125,16 +142,17 @@ app.use(loadUser);
 app.use(redirectForbiddenUrlsToLogin);
 app.use(redirectLoginUsersToHome);
 app.use(serveFile);
-// app.use(todoRequestHandler);
+app.use(todoRequestHandler);
 
 app.get('/', homepage);
 app.get('/login', loginPage);
-app.get('/new', newTodoPage)
+app.get('/new', newTodoPage);
 
 app.post('/login', checkUser);
-app.post('/createItem', addItem);
+app.post('/create', addItem);
 app.post('/logout', logoutPage);
-app.post('/create', todoPage);
+app.post('/createTodo', todoPage);
 app.post('/getAllTodo',getAllTodo);
+app.post('/getAllItem',getAllItem);
 
 module.exports = app;

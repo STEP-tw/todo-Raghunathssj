@@ -26,7 +26,7 @@ describe('app',()=>{
     it('serves the login page',done=>{
       request(app,{method:'GET',url:'/login'},res=>{
         th.status_is_ok(res);
-        th.body_does_not_contain(res,'login failed');
+        th.body_does_not_contain(res,'Invalid user name or password');
         th.should_not_have_cookie(res,'message');
         done();
       })
@@ -43,60 +43,58 @@ describe('app',()=>{
     it('redirects to /login with message if user name and password is not given ',done=>{
       request(app,{method:'POST',url:'/login',body:'userName=&password='},res=>{
         th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','login failed');
+        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
         done();
       })
     })
     it('redirects to /login with message if user name is not given ',done=>{
       request(app,{method:'POST',url:'/login',body:'userName=&password=raghu'},res=>{
         th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','login failed');
+        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
         done();
       })
     })
     it('redirects to /login with message if password is not given ',done=>{
       request(app,{method:'POST',url:'/login',body:'userName=raghu&password='},res=>{
         th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','login failed');
+        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
         done();
       })
     })
     it('redirects to /login with message if invalid user name is given',done=>{
       request(app,{method:'POST',url:'/login',body:'userName=raghu&password=raghus'},res=>{
         th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','login failed');
+        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
         done();
       })
     })
     it('redirects to /login with message if invalid user name is given',done=>{
       request(app,{method:'POST',url:'/login',body:'userName=raghus&password=raghu'},res=>{
         th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','login failed');
+        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
         done();
       })
     })
     it('redirects to /login with message if invalid user name given and password is given wrongly',done=>{
       request(app,{method:'POST',url:'/login',body:'userName=raghus&password=raghus'},res=>{
         th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','login failed');
+        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
         done();
       })
     })
   })
-  describe('POST /create',()=>{
+  describe('POST /createTodo',()=>{
     it('serves the create page',done=>{
-      request(app,{method:'POST',url:'/create',user:{name:'Raghunath'},body:'title=Title'},res=>{
+      request(app,{method:'POST',url:'/createTodo',user:{name:'Raghunath',addTodo:()=>{return}},body:'title=Title'},res=>{
         th.status_is_ok(res);
         th.content_type_is(res,'text/html');
         done();
       })
     })
-  })
-  describe.skip('POST /todoList',()=>{
-    it('redirects to home',done=>{
-      request(app,{method:'POST',url:'/todoList'},res=>{
-        th.should_be_redirected_to(res,'/');
-        done();
+    it('serves the create page',()=>{
+      request(app,{method:'POST',url:'/createTodo',user:{name:'Raghunath',addTodo:()=>{return}},body:'title='},res=>{
+        th.should_be_redirected_to(res,'/new');
+        th.should_have_expiring_cookie(res,'message','Title required');
       })
     })
   })
@@ -109,20 +107,42 @@ describe('app',()=>{
       })
     })
   })
-  describe('GET /createItem',()=>{
-    it('serves create page with given items',done=>{
-      request(app,{method:'GET',url:'/createItem',user:{name:'Raghunath'}},res=>{
+  describe('POST /getAllItem',()=>{
+    it('should give given items',()=>{
+      request(app,{method:'POST',url:'/getAllItem',user:{name:'Raghunath',getAllItem:()=>{return}}},res=>{
         th.status_is_ok(res);
-        th.content_type_is(res,'text/html');
-        done();
       })
     })
   }),
-  describe('POST /createItem',()=>{
+  describe('POST /create',()=>{
     it('stores the given item',done=>{
-      request(app,{method:'POST',url:'/createItem',user:{name:'Raghunath'}},res=>{
+      request(app,{method:'POST',url:'/create',user:{name:'Raghunath',addTodoItem:()=>{return}}},res=>{
         th.status_is_ok(res);
         done();
+      })
+    })
+  })
+  describe('GET /new', () => {
+    it('should serve new todo page', () => {
+      request(app,{method:'GET',url:'/new',user:{name:'Arvind'}},res=>{
+        th.status_is_ok(res);
+        th.content_type_is(res,'text/html');
+        th.body_contains(res,'Title');
+        th.body_contains(res,'description');
+      })
+    })
+    it('should serve new todo page', () => {
+      request(app,{method:'GET',url:'/new',user:{name:'Arvind'},headers:{cookie:'message=Title required'}},res=>{
+        th.status_is_ok(res);
+        th.content_type_is(res,'text/html');
+        th.body_contains(res,'Title required');
+      })
+    })
+  })
+  describe('POST /getAllTodo', ()=>{
+    it('should give given user todos', ()=>{
+      request(app,{method:'POST',url:'/getAllTodo',user:{name:'Arvind',getAllTodo:()=>{return;}}},res=>{
+        th.status_is_ok(res);
       })
     })
   })

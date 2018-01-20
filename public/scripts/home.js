@@ -2,7 +2,7 @@ const refresh = function(){
   location.reload();
 }
 
-const callback = function(){
+const viewTodos = function(){
   let allTodo = JSON.parse(this.responseText);
   let block = document.getElementById('todos');
   allTodo.forEach(todo=>{
@@ -27,7 +27,7 @@ const sendRequest = function(method,url,callback,data){
 }
 
 const getAllTodo = function(){
-  sendRequest('post','/getAllTodo',callback,'');
+  sendRequest('post','/getAllTodo',viewTodos,'');
 }
 
 window.onload = getAllTodo;
