@@ -169,9 +169,17 @@ describe('app',()=>{
     })
   })
   describe('POST /updateItemStatus',()=>{
-    it("should update status of the given id's item of current todo",()=>{
+    it("should update status of the given id's item of the given id's todo",()=>{
       request(app,{method:'POST',url:'/updateItemStatus',body:'itemId=0_0',user:{name:'Arvind',updateItemStatus:()=>{return;}}},res=>{
         th.status_is_ok(res);
+      })
+    })
+  })
+  describe('POST /deleteItem',()=>{
+    it("should delete the given id's item of the given id's todo",()=>{
+      request(app,{method:'POST',url:'/deleteItem',body:'itemId=0_0',user:{name:'Arvind',deleteItem:()=>{return true;}}},res=>{
+        th.status_is_ok(res);
+        th.body_contains(res,'true');
       })
     })
   })

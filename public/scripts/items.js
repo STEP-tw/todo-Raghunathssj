@@ -9,6 +9,14 @@ const refresh = function(){
   location.reload();
 }
 
+const loadPage = function(){
+  if(this.responseText){
+    document.getElementById('item').innerText = '';
+    location.reload();
+  }
+  return;
+}
+
 const showMessage = function(){
   document.getElementById('message').innerText = 'Item required';
 }
@@ -29,10 +37,22 @@ const getAllItem = function(){
 
 const updateStatus = function() {
   let itemId = event.target.id;
-  sendRequest('post','/updateItemStatus',refresh,`itemId=${itemId}`);
+  sendRequest('post','/updateItemStatus',loadPage,`itemId=${itemId}`);
 }
 
+const deleteItem = function(event){
+  let itemId = event.target.id;
+  sendRequest('POST','/deleteItem',loadPage,`itemId=${itemId}`);
+}
 
+const appendDeleteButtonToPara = function(para,id){
+  let deleteButton = document.createElement('button');
+  deleteButton.id = id;
+  deleteButton.onclick = deleteItem;
+  deleteButton.innerText = 'delete';
+  para.appendChild(deleteButton);
+  return para;
+}
 
 const viewTodoItems = function(){
   let allTodo = JSON.parse(this.responseText);
@@ -53,10 +73,7 @@ const viewTodoItems = function(){
     }
     statusButton.onclick = updateStatus;
     para.appendChild(statusButton);
-    let deleteButton = document.createElement('button');
-    deleteButton.id = item.id;
-    deleteButton.innerText = 'delete';
-    para.appendChild(deleteButton);
+    para = appendDeleteButtonToPara(para,item.id);
     block.appendChild(para);
   });
 }
