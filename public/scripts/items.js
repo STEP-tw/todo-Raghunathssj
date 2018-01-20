@@ -5,12 +5,20 @@ const sendRequest = function(method,url,callback,data){
   xhr.send(data);
 };
 const refresh = function(){
+  document.getElementById('item').innerText = '';
   location.reload();
 }
 
+const showMessage = function(){
+  document.getElementById('message').innerText = 'Item required';
+}
 
 const create = function(){
   let item = document.getElementById('item').value;
+  if(!item){
+    showMessage();
+    return;
+  }
   let data = `item=${item}`;
   sendRequest('post','/create',refresh,data);
 };

@@ -42,7 +42,7 @@ const respondWithMsg = function(req, res, file) {
   return;
 };
 
-let forbiddenUrls = ['/', '/create', '/todoList', '/html/new.html', '/createItem', '/logout','/new'];
+let forbiddenUrls = ['/', '/create', '/createItem', '/logout','/new','/createTodo','/deleteTodo','/getAllItem','/getAllTodo'];
 
 const redirectForbiddenUrlsToLogin = (req, res) => {
   if (req.urlIsOneOf(forbiddenUrls) && !req.user || req.url.startsWith('/todo') && !req.user) res.redirect('/login');
@@ -56,6 +56,7 @@ const homepage = (req, res) => {
   let home = fs.readFileSync('./public/html/index.html', 'utf8');
   home = home.replace(/userName/, `welcome ${req.user.name}`);
   res.statusCode = 200;
+  res.setHeader('Content-Type','text/html');
   res.write(home);
   res.end();
   return;
@@ -94,10 +95,7 @@ const todoPage = (req, res) => {
   }
   let description = req.body.description;
   req.user.addTodo(title, description);
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/html');
-  res.write(fs.readFileSync('./public/html/index.html'));
-  res.end();
+  res.redirect('/');
 };
 
 const newTodoPage = (req, res) => {
@@ -133,6 +131,12 @@ const getAllItem = (req,res)=>{
   let allItem = JSON.stringify(req.user.getAllItem());
   res.write(allItem);
   res.end();
+};
+
+const deleteTodo = (req,res)=>{
+  let status = req.user.deleteTodo(req.body.todoId);
+  res.write(status.toString());
+  res.end();
 }
 
 //=====================================================================
@@ -154,5 +158,6 @@ app.post('/logout', logoutPage);
 app.post('/createTodo', todoPage);
 app.post('/getAllTodo',getAllTodo);
 app.post('/getAllItem',getAllItem);
+app.post('/deleteTodo',deleteTodo);
 
 module.exports = app;
