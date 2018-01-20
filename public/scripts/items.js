@@ -28,8 +28,10 @@ const getAllItem = function(){
 };
 
 const updateStatus = function() {
-  // sendRequest('post','/updateStatus','refresh','');
+  let itemId = event.target.id;
+  sendRequest('post','/updateItemStatus',refresh,`itemId=${itemId}`);
 }
+
 
 
 const viewTodoItems = function(){
@@ -38,13 +40,18 @@ const viewTodoItems = function(){
   allTodo.forEach(item=>{
     let para = document.createElement('p');
     para.innerText = item.title;
+    para.id = item.id;
     let statusButton = document.createElement('button');
     statusButton.id = item.id;
-    if(item.status)
-      item.status = "done";
-    else
-      item.status = "undone";
-    statusButton.innerText = item.status;
+    if(!item.status){
+      statusButton.innerText = "undone";
+      para.style= 'text-decoration: none';
+    }
+    else{
+      statusButton.innerText = "done";
+      para.style= 'text-decoration: line-through';
+    }
+    statusButton.onclick = updateStatus;
     para.appendChild(statusButton);
     let deleteButton = document.createElement('button');
     deleteButton.id = item.id;

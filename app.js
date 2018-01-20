@@ -42,7 +42,7 @@ const respondWithMsg = function(req, res, file) {
   return;
 };
 
-let forbiddenUrls = ['/', '/create', '/createItem', '/logout','/new','/createTodo','/deleteTodo','/getAllItem','/getAllTodo'];
+let forbiddenUrls = ['/', '/create', '/createItem', '/logout','/new','/createTodo','/deleteTodo','/getAllItem','/getAllTodo','/updateStatus'];
 
 const redirectForbiddenUrlsToLogin = (req, res) => {
   if (req.urlIsOneOf(forbiddenUrls) && !req.user || req.url.startsWith('/todo') && !req.user) res.redirect('/login');
@@ -137,6 +137,13 @@ const deleteTodo = (req,res)=>{
   let status = req.user.deleteTodo(req.body.todoId);
   res.write(status.toString());
   res.end();
+};
+
+const updateItemStatus = (req,res)=>{
+  let itemId = req.body.itemId.split('_')[1];
+  let todoId = req.body.itemId.split('_')[0];
+  req.user.updateItemStatus(todoId,itemId);
+  res.end();
 }
 
 //=====================================================================
@@ -159,5 +166,6 @@ app.post('/createTodo', todoPage);
 app.post('/getAllTodo',getAllTodo);
 app.post('/getAllItem',getAllItem);
 app.post('/deleteTodo',deleteTodo);
+app.post('/updateItemStatus',updateItemStatus);
 
 module.exports = app;

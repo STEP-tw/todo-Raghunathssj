@@ -168,4 +168,11 @@ describe('app',()=>{
       })
     })
   })
+  describe('POST /updateItemStatus',()=>{
+    it("should update status of the given id's item of current todo",()=>{
+      request(app,{method:'POST',url:'/updateItemStatus',body:'itemId=0_0',user:{name:'Arvind',updateItemStatus:()=>{return;}}},res=>{
+        th.status_is_ok(res);
+      })
+    })
+  })
 })
