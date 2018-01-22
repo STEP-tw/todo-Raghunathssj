@@ -1,8 +1,8 @@
 node_modules/
 .DS_Store
 *.log
+data/
 package-lock.json
 storeItems.js
-data/
 coverage/
 .nyc_output/

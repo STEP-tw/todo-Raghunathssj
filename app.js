@@ -141,7 +141,7 @@ const deleteTodo = (req,res)=>{
 const updateItemStatus = (req,res)=>{
   let parsedIds = parseText(req.body.itemId,'_');
   let todoId = parsedIds[0];
-  let itemId = parsedIds[1];
+  let itemId = req.body.itemId;
   req.user.updateItemStatus(todoId,itemId);
   res.end();
 }
@@ -149,7 +149,7 @@ const updateItemStatus = (req,res)=>{
 const deleteItem = (req,res)=>{
   let parsedIds = parseText(req.body.itemId,'_');
   let todoId = parsedIds[0];
-  let itemId = parsedIds[1];
+  let itemId = req.body.itemId;
   let status = req.user.deleteItem(todoId,itemId);
   res.write(status.toString());
   res.end();
