@@ -1,6 +1,9 @@
 const http = require('http');
+const fs = require('fs');
+const logger = require('./lib/utility/requestLogger.js');
 const app = require('./app.js');
 const PORT = 8080;
+app.logRequest = logger.create('./request.log', fs);
 let server = http.createServer(app);
 server.on('error',e=>console.error('**error**',e.message));
 server.listen(PORT,(e)=>console.log(`server listening at ${PORT}`));

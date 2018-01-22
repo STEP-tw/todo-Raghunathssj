@@ -1,15 +1,17 @@
 let chai = require('chai');
 let assert = chai.assert;
 let request = require('./requestSimulator.js');
-process.env.COMMENT_STORE = "./testStore.json";
+process.env.testing = true;
 let app = require('../app.js');
+let loadUser = require('../app.js').loadUser;
 let th = require('./testHelper.js');
-
+app.logRequest = ()=>{};
 describe('app',()=>{
   describe('GET /bad',()=>{
     it('responds with 404',()=>{
       request(app,{method:'GET',url:'/bad'},(res)=>{
         assert.equal(res.statusCode,404);
+        th.body_contains(res,'File not found!');
       })
     })
   })
@@ -38,6 +40,11 @@ describe('app',()=>{
     })
   })
   describe('GET /login',()=>{
+    it('should redirect to home page if user is logged in', () => {
+      request(app,{method:'GET',url:'/login',user:{name:'Raghunath'}},res=>{
+        th.should_be_redirected_to(res,'/');
+      })
+    });
     it('serves the login page',()=>{
       request(app,{method:'GET',url:'/login'},res=>{
         th.status_is_ok(res);
@@ -183,4 +190,19 @@ describe('app',()=>{
       })
     })
   })
+  describe('GET /todo[number]', () => {
+    it('should respond with 404 if the requested todo is not in user todos', () => {
+      request(app,{method:'GET',url:'/todo0',user:{name:'Arvind',isValidTodo:()=>{return false}}},res=>{
+        assert.equal(res.statusCode,404);
+        th.body_contains(res,'File not found!');
+      })
+    });
+    it('should serve item form with title and description of requested todo', () => {
+      request(app,{method:'GET',url:'/todo0',user:{name:'Arvind',isValidTodo:()=>{return true},getTodoHtml:()=>{return 'hello'}}},res=>{
+        th.status_is_ok(res);
+        th.content_type_is(res,'text/html');
+        th.body_contains(res,'hello');
+      })
+    });
+  });
 })
