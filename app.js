@@ -1,5 +1,4 @@
 const fs = require('fs');
-const Log = require('./lib/utility/log.js');
 const WebApp = require('./webapp');
 const User = require('./lib/models/user.js');
 const StaticFileHandler = require('./lib/models/serveFile.js');
@@ -8,7 +7,6 @@ let parseText = require('./lib/utility/utility.js').parseText;
 
 //=============================================
 const serveFile = new StaticFileHandler('public', fs).getRequestHandler();
-const log = new Log('./request.log', fs).getRequestHandler();
 let sessionHandler = new SessionHandler();
 sessionHandler.addUser('raghu', 'Raghunath', 'raghu');
 sessionHandler.addUser('arvinds', 'Arvind', 'arvinds');
@@ -120,7 +118,7 @@ const todoRequestHandler = (req,res)=>{
   if(req.url.startsWith('/todo') && req.user.isValidTodo(todoKey)){
     let todoHtml = req.user.getTodoHtml(todoKey);
     let formData = fs.readFileSync('./public/html/createItem.html','utf8');
-    res.setHeader('content-Type','text/html');
+    res.setHeader('Content-Type','text/html');
     res.statusCode = 200;
     res.write(formData);
     res.write(todoHtml);
@@ -159,7 +157,7 @@ const deleteItem = (req,res)=>{
 
 //=====================================================================
 let app = WebApp.create();
-app.use(log);
+app.use((req,res)=>app.logRequest(req,res));
 app.use(loadUser);
 app.use(redirectForbiddenUrlsToLogin);
 app.use(redirectLoginUsersToHome);
@@ -180,4 +178,5 @@ app.post('/deleteTodo',deleteTodo);
 app.post('/updateItemStatus',updateItemStatus);
 app.post('/deleteItem',deleteItem);
 
+exports.loadUser = loadUser;
 module.exports = app;

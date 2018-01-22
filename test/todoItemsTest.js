@@ -1,5 +1,3 @@
-const Item = require('../lib/models/item.js');
-let as = require('assert');
 let chai = require('chai');
 let assert = chai.assert;
 const TodoItemshandler = require('../lib/models/todoItems.js');

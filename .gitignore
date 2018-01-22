@@ -3,3 +3,6 @@ node_modules/
 *.log
 package-lock.json
 storeItems.js
+data/
+coverage/
+.nyc_output/
