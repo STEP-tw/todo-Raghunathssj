@@ -61,7 +61,7 @@ describe('app',()=>{
   })
   describe('POST /login',()=>{
     it('redirects to home for valid user and password',()=>{
-      request(app,{method:'POST',url:'/login',body:'username=raghu&password=raghu'},res=>{
+      request(app,{method:'POST',url:'/login',body:'username=admin&password=password'},res=>{
         th.should_be_redirected_to(res,'/');
         th.should_not_have_cookie(res,'message');
       })
