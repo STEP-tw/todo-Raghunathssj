@@ -4,18 +4,18 @@ const User = require('./lib/models/user.js');
 const StaticFileHandler = require('./lib/models/serveFile.js');
 const SessionHandler = require('./lib/models/sessionManager.js');
 let parseText = require('./lib/utility/utility.js').parseText;
+const Users = require('./lib/models/users');
+const DataHandler = require('./lib/models/dataHandler');
 
 //=============================================
 const serveFile = new StaticFileHandler('public', fs).getRequestHandler();
 let sessionHandler = new SessionHandler();
-sessionHandler.addUser('raghu', 'Raghunath', 'raghu');
-sessionHandler.addUser('arvinds', 'Arvind', 'arvinds');
+let users = new Users();
 
 //==============================================
 let loadUser = (req, res) => {
-  console.log(req.url,req.method);
   let sessionid = req.cookies.sessionid;
-  let user = sessionHandler.getUserBySessionId(sessionid);
+  let user = users.getUserBySessionId(sessionid);
   if (sessionid && user) {
     req.user = user;
   }
@@ -53,7 +53,7 @@ const redirectLoginUsersToHome = (req, res) => {
 //==============================================================
 const homepage = (req, res) => {
   let home = fs.readFileSync('./public/html/index.html', 'utf8');
-  home = home.replace(/userName/, `welcome ${req.user.name}`);
+  home = home.replace(/username/, `welcome ${req.user.name}`);
   res.statusCode = 200;
   res.setHeader('Content-Type','text/html');
   res.write(home);
@@ -67,12 +67,12 @@ const loginPage = (req, res) => {
 };
 
 const checkUser = (req, res) => {
-  if (!sessionHandler.hasUser(req.body.userName, req.body.password)) {
+  let user = users.getUser(req.body.username,req.body.password);
+  if (!user) {
     sessionHandler.failedLogin(res);
     res.redirect('/login');
     return;
   }
-  let user = sessionHandler.getUser(req.body.userName);
   sessionHandler.setSessionId(res,user);
   res.redirect('/');
 };
@@ -80,6 +80,7 @@ const checkUser = (req, res) => {
 const addItem = (req, res) => {
   let item = req.body.item;
   req.user.addTodoItem(item);
+  users.saveData()
   res.statusCode = 200;
   res.end();
   return;
@@ -135,6 +136,7 @@ const getAllItem = (req,res)=>{
 const deleteTodo = (req,res)=>{
   let status = req.user.deleteTodo(req.body.todoId);
   res.write(status.toString());
+  users.saveData()
   res.end();
 };
 
@@ -143,6 +145,7 @@ const updateItemStatus = (req,res)=>{
   let todoId = parsedIds[0];
   let itemId = req.body.itemId;
   req.user.updateItemStatus(todoId,itemId);
+  users.saveData()
   res.end();
 }
 
@@ -152,6 +155,7 @@ const deleteItem = (req,res)=>{
   let itemId = req.body.itemId;
   let status = req.user.deleteItem(todoId,itemId);
   res.write(status.toString());
+  users.saveData()
   res.end();
 }
 

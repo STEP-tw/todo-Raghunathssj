@@ -1,5 +1,5 @@
 const User = require('../lib/models/user.js');
-const Todo = require('../lib/models/Todo.js');
+const Todo = require('../lib/models/todo.js');
 
 let chai = require('chai');
 let assert = chai.assert;
@@ -76,7 +76,17 @@ describe('User', () => {
       user.addTodo('test', 'for testing');
       user.deleteTodo('0');
       let allTodos = user.getAllTodo();
+      assert.isEmpty(user.currentTodo)
       assert.isEmpty(allTodos);
+    })
+    it('should delete todo of given key from user todos and remain other todos', () => {
+      user.addTodo('test', 'for testing');
+      user.addTodo('test2', 'for testing with two');
+      user.deleteTodo('0');
+      let allTodos = user.getAllTodo();
+      let expected = new Todo('test2','for testing with two',1);
+      assert.isNotEmpty(user.currentTodo)
+      assert.deepEqual(allTodos,[expected]);
     })
   })
   describe('updateItemStatus', () => {

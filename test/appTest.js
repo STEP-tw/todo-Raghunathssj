@@ -61,43 +61,43 @@ describe('app',()=>{
   })
   describe('POST /login',()=>{
     it('redirects to home for valid user and password',()=>{
-      request(app,{method:'POST',url:'/login',body:'userName=raghu&password=raghu'},res=>{
+      request(app,{method:'POST',url:'/login',body:'username=raghu&password=raghu'},res=>{
         th.should_be_redirected_to(res,'/');
         th.should_not_have_cookie(res,'message');
       })
     })
     it('redirects to /login with message if user name and password is not given ',()=>{
-      request(app,{method:'POST',url:'/login',body:'userName=&password='},res=>{
+      request(app,{method:'POST',url:'/login',body:'username=&password='},res=>{
         th.should_be_redirected_to(res,'/login');
         th.should_have_expiring_cookie(res,'message','Invalid user name or password');
       })
     })
     it('redirects to /login with message if user name is not given ',()=>{
-      request(app,{method:'POST',url:'/login',body:'userName=&password=raghu'},res=>{
+      request(app,{method:'POST',url:'/login',body:'username=&password=raghu'},res=>{
         th.should_be_redirected_to(res,'/login');
         th.should_have_expiring_cookie(res,'message','Invalid user name or password');
       })
     })
     it('redirects to /login with message if password is not given ',()=>{
-      request(app,{method:'POST',url:'/login',body:'userName=raghu&password='},res=>{
+      request(app,{method:'POST',url:'/login',body:'username=raghu&password='},res=>{
         th.should_be_redirected_to(res,'/login');
         th.should_have_expiring_cookie(res,'message','Invalid user name or password');
       })
     })
     it('redirects to /login with message if invalid user name is given',()=>{
-      request(app,{method:'POST',url:'/login',body:'userName=raghu&password=raghus'},res=>{
+      request(app,{method:'POST',url:'/login',body:'username=raghu&password=raghus'},res=>{
         th.should_be_redirected_to(res,'/login');
         th.should_have_expiring_cookie(res,'message','Invalid user name or password');
       })
     })
     it('redirects to /login with message if invalid user name is given',()=>{
-      request(app,{method:'POST',url:'/login',body:'userName=raghus&password=raghu'},res=>{
+      request(app,{method:'POST',url:'/login',body:'username=raghus&password=raghu'},res=>{
         th.should_be_redirected_to(res,'/login');
         th.should_have_expiring_cookie(res,'message','Invalid user name or password');
       })
     })
     it('redirects to /login with message if invalid user name given and password is given wrongly',()=>{
-      request(app,{method:'POST',url:'/login',body:'userName=raghus&password=raghus'},res=>{
+      request(app,{method:'POST',url:'/login',body:'username=raghus&password=raghus'},res=>{
         th.should_be_redirected_to(res,'/login');
         th.should_have_expiring_cookie(res,'message','Invalid user name or password');
       })
