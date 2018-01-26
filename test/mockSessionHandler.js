@@ -7,11 +7,11 @@ class SessionHandler {
     delete req.user.sessionid;
   }
   failedLogin(res){
-    res.cookie('message','Invalid user name or password','Max-Age','5');
+    res.cookie('message','Invalid user name or password');
   }
   setSessionId(res,user){
     res.clearCookie('message');
-    let sessionid = new Date().getTime();
+    let sessionid = 1234;
     res.cookie('sessionid',`${sessionid}`);
     user.sessionid = sessionid;
   }

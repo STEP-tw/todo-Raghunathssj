@@ -1,208 +1,274 @@
 let chai = require('chai');
 let assert = chai.assert;
-let request = require('./requestSimulator.js');
-process.env.testing = true;
+const request = require('supertest');
+const MockSessionHandler = require('./mockSessionHandler')
+const Mockusers = require('./mockusers')
 let app = require('../app.js');
-let loadUser = require('../app.js').loadUser;
-let th = require('./testHelper.js');
-app.logRequest = ()=>{};
-describe('app',()=>{
-  describe('GET /bad',()=>{
-    it('responds with 404',()=>{
-      request(app,{method:'GET',url:'/bad'},(res)=>{
-        assert.equal(res.statusCode,404);
-        th.body_contains(res,'File not found!');
-      })
+app.logRequest = (req, res, next) => {
+  next()
+};
+app.sessionHandler = new MockSessionHandler();
+app.users = new Mockusers();
+describe('app', () => {
+  describe('GET /bad', () => {
+    it('should respond with 404', (done) => {
+      request(app)
+        .get('/bad')
+        .expect(404)
+        .end(done);
     })
   })
-  describe('forbidden urls',()=>{
-    it('redirect to login page if any of the forbidden urls are given without login',()=>{
-      request(app,{method:'POST',url:'/getAllTodo'},res=>{
-        th.should_be_redirected_to(res,'/login');
-      })
-      request(app,{method:'GET',url:'/new'},res=>{
-        th.should_be_redirected_to(res,'/login');
-      })
+  describe('forbidden urls', () => {
+    it('redirect to login page if any of the forbidden urls are given without login', done => {
+      request(app)
+        .get('/getAllTodo')
+        .expect('location', '/login')
+        .end(done);
     })
   })
-  describe('GET /',()=>{
-    it('redirects to login page if the user is not logged in',()=>{
-      request(app,{method:'GET',url:'/'},(res)=>{
-        th.should_be_redirected_to(res,'/login');
-      })
+  describe('GET /', () => {
+    it('redirects to login page if the user is not logged in', done => {
+      request(app)
+        .get('/')
+        .expect('location', '/login')
+        .end(done)
+    });
+    it('serves the home page if user is logged in', done => {
+      request(app)
+        .get('/')
+        .set('cookie', 'sessionid=1234')
+        .expect(200)
+        .expect('content-type', /html/)
+        .end(done)
     })
-    it('serves the home page if user is logged in',()=>{
-      request(app,{method:'GET',url:'/',user:{name:'Raghunath'}},(res)=>{
-        th.status_is_ok(res);
-        th.content_type_is(res,'text/html');
-        th.body_contains(res,'Raghunath');
-      })
+    it('serves the home page if user is logged in', done => {
+      request(app)
+        .get('/login')
+        .set('cookie', 'sessionid=1234')
+        .expect(302)
+        .expect('location','/')
+        .end(done)
     })
   })
-  describe('GET /login',()=>{
-    it('should redirect to home page if user is logged in', () => {
-      request(app,{method:'GET',url:'/login',user:{name:'Raghunath'}},res=>{
-        th.should_be_redirected_to(res,'/');
+  describe('GET /login', () => {
+    it('should redirect to home page if user is logged in', done => {
+      request(app)
+        .get('/')
+        .set('cookie', 'sessionid=1234')
+        .expect(200)
+        .expect('content-type', /html/)
+        .end(done)
+    });
+    it('serves the login page', done => {
+      request(app)
+        .get('/')
+        .expect(302)
+        // .expect('content-type',/html/)
+        .end(done)
+      // th.body_does_not_contain(res, 'Invalid user name or password');
+      // th.should_not_have_cookie(res, 'message');
+    })
+    it('serves the login page with message if there is cookie', done => {
+      request(app)
+        .get('/login')
+        .set('cookie', 'message=Invalid user name or password')
+        .expect(200)
+        .expect('content-type', /html/)
+        .expect(/Invalid user name or password/)
+        .end(done)
+    })
+  })
+  describe('POST /login', () => {
+    it('redirects to home for valid user and password', done => {
+      request(app)
+        .post('/login')
+        .send('username=raghu&password=raghu')
+        .expect(302)
+        .expect('location', '/')
+        .end(done)
+    })
+    it('redirects to /login with message if user name and password is not given ', done => {
+      //   th.should_have_expiring_cookie(res, 'message', 'Invalid user name or password');
+      request(app)
+        .post('/login')
+        .send('username=&password=')
+        .expect(302)
+        .expect('location', '/login')
+        .end(done)
+    })
+    it('redirects to /login with message if user name is not given ', done => {
+      //   th.should_have_expiring_cookie(res, 'message', 'Invalid user name or password');
+      request(app)
+        .post('/login')
+        .send('username=&password=raghu')
+        .expect(302)
+        .expect('location', '/login')
+        .end(done)
+    })
+    it('redirects to /login with message if password is not given ', done => {
+      //   th.should_have_expiring_cookie(res, 'message', 'Invalid user name or password');
+      request(app)
+        .post('/login')
+        .send('username=raghu&password=')
+        .expect(302)
+        .expect('location', '/login')
+        .end(done)
+    })
+    it('redirects to /login with message if invalid user name is given', done => {
+      //th.should_have_expiring_cookie(res, 'message', 'Invalid user name or password');
+      request(app)
+        .post('/login')
+        .send('username=raghus&password=')
+        .expect(302)
+        .expect('location', '/login')
+        .end(done)
+    })
+    it('redirects to /login with message if invalid user name given and password is given wrongly', done => {
+      //       th.should_have_expiring_cookie(res, 'message', 'Invalid user name or password');
+      request(app)
+        .post('/login')
+        .send('username=raghus&password=raghus')
+        .expect(302)
+        .expect('location', '/login')
+        .end(done)
+    })
+    describe('POST /createTodo', () => {
+      it('serves the home page if title is given', done => {
+        request(app)
+          .post('/createTodo')
+          .set('cookie', 'sessionid=1234')
+          .send('title=Title')
+          .expect('location', '/')
+          .end(done)
+      })
+    })
+    it('serves the new todo page with message if title is not given', done => {
+      //       th.should_have_expiring_cookie(res, 'message', 'Title required');
+      request(app)
+        .post('/createTodo')
+        .set('cookie', 'sessionid=1234')
+        .send('title=')
+        .expect(302)
+        .expect('location', '/new')
+        .end(done)
+    })
+    describe('POST /logout', () => {
+      it('redirects to login page with an expiring cookie', done => {
+        //       th.should_have_expiring_cookie(res, 'sessionid', 0);
+        request(app)
+          .post('/logout')
+          .set('cookie', 'sessionid=1234')
+          .expect(302)
+          .expect('location', '/login')
+          .end(done)
+      })
+
+      it('redirects to login page if there is no logged in user', done => {
+        request(app)
+          .post('/logout')
+          .set('cookie', 'sessionid=1245')
+          .expect(302)
+          .expect('location', '/login')
+          .end(done)
+      })
+    })
+    describe('POST /getAllItem', () => {
+      it('should give given items', done => {
+        request(app)
+          .post('/getAllItem')
+          .set('cookie', 'sessionid=1234')
+          .expect(200)
+          .end(done)
+      })
+    })
+    describe('POST /create', () => {
+      it('stores the given item', done => {
+        request(app)
+          .post('/create')
+          .set('cookie', 'sessionid=1234')
+          .expect(200)
+          .end(done)
+      })
+    })
+    describe('GET /new', () => {
+      it('should serve new todo page', done => {
+        request(app)
+          .get('/new')
+          .set('cookie', 'sessionid=1234')
+          .expect('content-type', 'text/html')
+          .expect(200)
+          .expect(/Title/)
+          .expect(/description/)
+          .end(done)
+      })
+    })
+    it('should serve new todo page', done => {
+      //       th.body_contains(res, 'Title required');
+      request(app)
+        .get('/new')
+        .set('cookie', 'sessionid=1234')
+        .expect('content-type', 'text/html')
+        .expect(200)
+        .end(done)
+    })
+    describe('POST /getAllTodo', () => {
+      it('should give given user todos', done => {
+        request(app)
+          .post('/getAllTodo')
+          .set('cookie', 'sessionid=1234')
+          .expect(200)
+          .end(done)
+      })
+    })
+    describe('POST /deleteTodo', () => {
+      it('should delete the todo using todoId and response with status', done => {
+        request(app)
+          .post('/deleteTodo')
+          .set('cookie', 'sessionid=1234')
+          .expect(200)
+          .expect('true')
+          .end(done)
+      })
+    })
+    describe('POST /updateItemStatus', () => {
+      it("should update status of the given id's item of the given id's todo", done => {
+        request(app)
+          .post('/updateItemStatus')
+          .set('cookie', 'sessionid=1234')
+          .send('itemId=0_0')
+          .expect(200)
+          .end(done)
+      })
+    })
+    describe('POST /deleteItem', () => {
+      it("should delete the given id's item of the given id's todo", done => {
+        request(app)
+          .post('/deleteItem')
+          .set('cookie', 'sessionid=1234')
+          .send('itemId=0_0')
+          .expect(200)
+          .expect('true')
+          .end(done)
+      })
+    })
+    describe('GET /todo[number]', () => {
+      it('should respond with 404 if the requested todo is not in user todos', done => {
+        request(app)
+          .get('/todo5')
+          .set('cookie', 'sessionid=1234')
+          .expect(404)
+          .expect(/Cannot GET/)
+          .end(done)
       })
     });
-    it('serves the login page',()=>{
-      request(app,{method:'GET',url:'/login'},res=>{
-        th.status_is_ok(res);
-        th.body_does_not_contain(res,'Invalid user name or password');
-        th.should_not_have_cookie(res,'message');
-      })
-    })
-    it('serves the login page with message if there is cookie',()=>{
-      request(app,{method:'GET',url:'/login',headers:{cookie:'message=Invalid user name or password'}},res=>{
-        th.status_is_ok(res);
-        th.body_contains(res,'Invalid user name or password');
-      })
-    })
-  })
-  describe('POST /login',()=>{
-    it('redirects to home for valid user and password',()=>{
-      request(app,{method:'POST',url:'/login',body:'username=admin&password=password'},res=>{
-        th.should_be_redirected_to(res,'/');
-        th.should_not_have_cookie(res,'message');
-      })
-    })
-    it('redirects to /login with message if user name and password is not given ',()=>{
-      request(app,{method:'POST',url:'/login',body:'username=&password='},res=>{
-        th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
-      })
-    })
-    it('redirects to /login with message if user name is not given ',()=>{
-      request(app,{method:'POST',url:'/login',body:'username=&password=raghu'},res=>{
-        th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
-      })
-    })
-    it('redirects to /login with message if password is not given ',()=>{
-      request(app,{method:'POST',url:'/login',body:'username=raghu&password='},res=>{
-        th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
-      })
-    })
-    it('redirects to /login with message if invalid user name is given',()=>{
-      request(app,{method:'POST',url:'/login',body:'username=raghu&password=raghus'},res=>{
-        th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
-      })
-    })
-    it('redirects to /login with message if invalid user name is given',()=>{
-      request(app,{method:'POST',url:'/login',body:'username=raghus&password=raghu'},res=>{
-        th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
-      })
-    })
-    it('redirects to /login with message if invalid user name given and password is given wrongly',()=>{
-      request(app,{method:'POST',url:'/login',body:'username=raghus&password=raghus'},res=>{
-        th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'message','Invalid user name or password');
-      })
-    })
-  })
-  describe('POST /createTodo',()=>{
-    it('serves the home page if title is given',()=>{
-      request(app,{method:'POST',url:'/createTodo',user:{name:'Raghunath',addTodo:()=>{return}},body:'title=Title'},res=>{
-        th.should_be_redirected_to(res,'/');
-      })
-    })
-    it('serves the new todo page with message if title is not given',()=>{
-      request(app,{method:'POST',url:'/createTodo',user:{name:'Raghunath',addTodo:()=>{return}},body:'title='},res=>{
-        th.should_be_redirected_to(res,'/new');
-        th.should_have_expiring_cookie(res,'message','Title required');
-      })
-    })
-  })
-  describe('POST /logout',()=>{
-    it('redirects to login page with an expiring cookie',()=>{
-      request(app,{method:'POST',url:'/logout',user:{name:'Raghunath'}},res=>{
-        th.should_be_redirected_to(res,'/login');
-        th.should_have_expiring_cookie(res,'sessionid',0);
-      })
-    })
-    it('redirects to login page if there is no logged in user',()=>{
-      request(app,{method:'POST',url:'/logout'},res=>{
-        th.should_be_redirected_to(res,'/login');
-      })
-    })
-  })
-  describe('POST /getAllItem',()=>{
-    it('should give given items',()=>{
-      request(app,{method:'POST',url:'/getAllItem',user:{name:'Raghunath',getAllItem:()=>{return}}},res=>{
-        th.status_is_ok(res);
-      })
-    })
-  }),
-  describe('POST /create',()=>{
-    it('stores the given item',()=>{
-      request(app,{method:'POST',url:'/create',user:{name:'Raghunath',addTodoItem:()=>{return}}},res=>{
-        th.status_is_ok(res);
-      })
-    })
-  })
-  describe('GET /new', () => {
-    it('should serve new todo page', () => {
-      request(app,{method:'GET',url:'/new',user:{name:'Arvind'}},res=>{
-        th.status_is_ok(res);
-        th.content_type_is(res,'text/html');
-        th.body_contains(res,'Title');
-        th.body_contains(res,'description');
-      })
-    })
-    it('should serve new todo page', () => {
-      request(app,{method:'GET',url:'/new',user:{name:'Arvind'},headers:{cookie:'message=Title required'}},res=>{
-        th.status_is_ok(res);
-        th.content_type_is(res,'text/html');
-        th.body_contains(res,'Title required');
-      })
-    })
-  })
-  describe('POST /getAllTodo', ()=>{
-    it('should give given user todos', ()=>{
-      request(app,{method:'POST',url:'/getAllTodo',user:{name:'Arvind',getAllTodo:()=>{return;}}},res=>{
-        th.status_is_ok(res);
-      })
-    })
-  })
-  describe('POST /deleteTodo',()=>{
-    it('should delete the todo using todoId and response with status',()=>{
-      request(app,{method:'POST',url:'/deleteTodo',user:{name:'Arvind',deleteTodo:()=>{return true}}},res=>{
-        th.status_is_ok(res);
-        th.body_contains(res,'true');
-      })
-    })
-  })
-  describe('POST /updateItemStatus',()=>{
-    it("should update status of the given id's item of the given id's todo",()=>{
-      request(app,{method:'POST',url:'/updateItemStatus',body:'itemId=0_0',user:{name:'Arvind',updateItemStatus:()=>{return;}}},res=>{
-        th.status_is_ok(res);
-      })
-    })
-  })
-  describe('POST /deleteItem',()=>{
-    it("should delete the given id's item of the given id's todo",()=>{
-      request(app,{method:'POST',url:'/deleteItem',body:'itemId=0_0',user:{name:'Arvind',deleteItem:()=>{return true;}}},res=>{
-        th.status_is_ok(res);
-        th.body_contains(res,'true');
-      })
-    })
-  })
-  describe('GET /todo[number]', () => {
-    it('should respond with 404 if the requested todo is not in user todos', () => {
-      request(app,{method:'GET',url:'/todo0',user:{name:'Arvind',isValidTodo:()=>{return false}}},res=>{
-        assert.equal(res.statusCode,404);
-        th.body_contains(res,'File not found!');
-      })
+    it('should serve item form with title and description of requested todo', done => {
+      request(app)
+        .get('/todo0')
+        .set('cookie', 'sessionid=1234')
+        .expect(200)
+        .expect('content-type', 'text/html')
+        .expect(/Title/)
+        .end(done)
     });
-    it('should serve item form with title and description of requested todo', () => {
-      request(app,{method:'GET',url:'/todo0',user:{name:'Arvind',isValidTodo:()=>{return true},getTodoHtml:()=>{return 'hello'}}},res=>{
-        th.status_is_ok(res);
-        th.content_type_is(res,'text/html');
-        th.body_contains(res,'hello');
-      })
-    });
-  });
+  })
 })

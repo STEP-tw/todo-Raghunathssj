@@ -1,26 +1,21 @@
 const fs = require('fs');
-const WebApp = require('./webapp');
-const User = require('./lib/models/user.js');
-const StaticFileHandler = require('./lib/models/serveFile.js');
-const SessionHandler = require('./lib/models/sessionManager.js');
+const express = require('express');
+const cookieparser = require('cookie-parser');
+const app = express();
+const bodyParser = require('body-parser');
 let parseText = require('./lib/utility/utility.js').parseText;
 const Users = require('./lib/models/users');
 const DataHandler = require('./lib/models/dataHandler');
-
 //=============================================
-const serveFile = new StaticFileHandler('public', fs).getRequestHandler();
-let sessionHandler = new SessionHandler();
-let users = new Users();
 
-//==============================================
-let loadUser = (req, res) => {
-  let sessionid = req.cookies.sessionid;
-  let user = users.getUserBySessionId(sessionid);
+let loadUser = (req, res,next) => {
+  let sessionid = req.cookies.sessionid
+  let user = app.users.getUserBySessionId(sessionid);
   if (sessionid && user) {
     req.user = user;
   }
+  next();
 };
-
 const getData = function(path, message) {
   let content = fs.readFileSync(path, 'utf8');
   content = content.replace(/message/, message);
@@ -43,21 +38,27 @@ const respondWithMsg = function(req, res, file) {
 
 let forbiddenUrls = ['/', '/create', '/createItem', '/logout','/new','/createTodo','/deleteTodo','/getAllItem','/getAllTodo','/updateStatus'];
 
-const redirectForbiddenUrlsToLogin = (req, res) => {
-  if (req.urlIsOneOf(forbiddenUrls) && !req.user || req.url.startsWith('/todo') && !req.user) res.redirect('/login');
+const redirectForbiddenUrlsToLogin = (req,res,next) => {
+  if (forbiddenUrls.includes(req.url) && !req.user || req.url.startsWith('/todo') && !req.user) {
+    res.redirect('/login');
+    res.send();
+  }else
+    next();
 };
 
-const redirectLoginUsersToHome = (req, res) => {
-  if (req.urlIsOneOf(['/login']) && req.user) res.redirect('/');
+const redirectLoginUsersToHome = (req, res,next) => {
+  if (['/login'].includes(req.url) && req.user) {
+    res.redirect('/');
+    return;
+  }
+  next()
 }
+
 //==============================================================
 const homepage = (req, res) => {
   let home = fs.readFileSync('./public/html/index.html', 'utf8');
   home = home.replace(/username/, `welcome ${req.user.name}`);
-  res.statusCode = 200;
-  res.setHeader('Content-Type','text/html');
-  res.write(home);
-  res.end();
+  res.send(home);
   return;
 };
 
@@ -67,20 +68,20 @@ const loginPage = (req, res) => {
 };
 
 const checkUser = (req, res) => {
-  let user = users.getUser(req.body.username,req.body.password);
+  let user = app.users.getUser(req.body.username,req.body.password);
   if (!user) {
-    sessionHandler.failedLogin(res);
+    app.sessionHandler.failedLogin(res);
     res.redirect('/login');
     return;
   }
-  sessionHandler.setSessionId(res,user);
+  app.sessionHandler.setSessionId(res,user);
   res.redirect('/');
 };
 
 const addItem = (req, res) => {
   let item = req.body.item;
   req.user.addTodoItem(item);
-  users.saveData()
+  app.users.saveData()
   res.statusCode = 200;
   res.end();
   return;
@@ -103,7 +104,7 @@ const newTodoPage = (req, res) => {
 };
 
 const logoutPage = (req, res) => {
-  sessionHandler.logOut(req, res);
+  app.sessionHandler.logOut(req, res);
   res.redirect('/login');
 };
 
@@ -113,7 +114,7 @@ const getAllTodo = (req,res)=>{
   res.end();
 }
 
-const todoRequestHandler = (req,res)=>{
+const todoRequestHandler = (req,res,next)=>{
   let todoKey = req.url.match(/[\d+]/);
   todoKey = todoKey && todoKey[0];
   if(req.url.startsWith('/todo') && req.user.isValidTodo(todoKey)){
@@ -125,6 +126,7 @@ const todoRequestHandler = (req,res)=>{
     res.write(todoHtml);
     res.end();
   }
+  next();
 }
 
 const getAllItem = (req,res)=>{
@@ -136,7 +138,7 @@ const getAllItem = (req,res)=>{
 const deleteTodo = (req,res)=>{
   let status = req.user.deleteTodo(req.body.todoId);
   res.write(status.toString());
-  users.saveData()
+  app.users.saveData()
   res.end();
 };
 
@@ -145,7 +147,7 @@ const updateItemStatus = (req,res)=>{
   let todoId = parsedIds[0];
   let itemId = req.body.itemId;
   req.user.updateItemStatus(todoId,itemId);
-  users.saveData()
+  app.users.saveData()
   res.end();
 }
 
@@ -155,17 +157,18 @@ const deleteItem = (req,res)=>{
   let itemId = req.body.itemId;
   let status = req.user.deleteItem(todoId,itemId);
   res.write(status.toString());
-  users.saveData()
+  app.users.saveData()
   res.end();
 }
 
 //=====================================================================
-let app = WebApp.create();
-app.use((req,res)=>app.logRequest(req,res));
+app.use(cookieparser());
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use((req,res,next)=>app.logRequest(req,res,next));
 app.use(loadUser);
 app.use(redirectForbiddenUrlsToLogin);
 app.use(redirectLoginUsersToHome);
-app.use(serveFile);
+app.use(express.static('public'));
 app.use(todoRequestHandler);
 
 app.get('/', homepage);
@@ -182,5 +185,4 @@ app.post('/deleteTodo',deleteTodo);
 app.post('/updateItemStatus',updateItemStatus);
 app.post('/deleteItem',deleteItem);
 
-exports.loadUser = loadUser;
 module.exports = app;

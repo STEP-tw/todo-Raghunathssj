@@ -1,8 +1,14 @@
 const http = require('http');
 const fs = require('fs');
+const SessionHandler = require('./lib/models/sessionManager');
+const Users = require('./lib/models/users');
 const logger = require('./lib/utility/requestLogger.js');
 const app = require('./app.js');
 const PORT = 8080;
+let sessionHandler = new SessionHandler();
+let users = new Users();
+app.sessionHandler = sessionHandler;
+app.users = users;
 app.logRequest = logger.create('./request.log', fs);
 let server = http.createServer(app);
 server.on('error',e=>console.error('**error**',e.message));

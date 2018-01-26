@@ -2,6 +2,7 @@ const sendRequest = function(method,url,callback,data){
   let xhr = new XMLHttpRequest();
   xhr.open(method,url);
   xhr.addEventListener('load',callback);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.send(data);
 };
 const refresh = function(){
