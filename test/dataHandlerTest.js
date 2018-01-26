@@ -11,8 +11,11 @@ describe('dataHandler', () => {
         return path == './data/_userDetails.json';
       },
       readFileSync: (path, encoding) => {
-        if (path == './data/_userDetails.json') return '{"name":"arvinds"}'
-        if (path == './filenotExist') return '{"name":"admin"}'
+        let FileContents = {
+          './data/_userDetails.json':'{"name":"arvinds"}',
+          './filenotExist': '{"name":"admin"}'
+        }
+        return FileContents[path]
       },
       appendFileSync: (path, data) => {
         flagAppendFile = true
@@ -45,8 +48,11 @@ describe('redeemUsersData', (done) => {
       return path == './data/_usersData.json';
     },
     readFileSync: (path, encoding) => {
-      if (path == './data/_usersData.json') return '[  {"username": "arvinds","name": "raghunath","allTodos": {},"todoIdCounter": 0,"currentTodo":{}}]'
-      if (path == './filenotExist') return '[{"username": "admin","name": "Admin","allTodos": {},"todoIdCounter": 0,"currentTodo": {}}]'
+      let FileContents = {
+        './data/_usersData.json':'[{"username": "arvinds","name": "raghunath","allTodos": {},"todoIdCounter": 0,"currentTodo":{}}]',
+        './filenotExist': '[{"username": "admin","name": "Admin","allTodos": {},"todoIdCounter": 0,"currentTodo": {}}]'
+      }
+      return FileContents[path];
     },
     appendFileSync: (path, data) => {
       flagAppendFile = true

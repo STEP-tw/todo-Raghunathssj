@@ -53,16 +53,15 @@ describe('app', () => {
   describe('GET /login', () => {
     it('should redirect to home page if user is logged in', done => {
       request(app)
-        .get('/')
+        .get('/login')
         .set('cookie', 'sessionid=1234')
-        .expect(200)
-        .expect('content-type', /html/)
+        .expect(302)
         .end(done)
     });
     it('serves the login page', done => {
       request(app)
-        .get('/')
-        .expect(302)
+        .get('/login')
+        .expect(200)
         // .expect('content-type',/html/)
         .end(done)
       // th.body_does_not_contain(res, 'Invalid user name or password');
