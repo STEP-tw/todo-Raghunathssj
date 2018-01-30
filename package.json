@@ -11,7 +11,7 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "mocha": "^3.4.2",
-    "supertest": "^3.0.0"
+    "supertest": "git+https://github.com/nrjais/supertest.git"
   },
   "scripts": {
     "start": "node server.js",

@@ -1,5 +1,5 @@
 const sendRequest = function(method,url,callback,data){
-  let xhr = new XMLHttpRequest();
+  const xhr = new XMLHttpRequest();
   xhr.open(method,url);
   xhr.addEventListener('load',callback);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -8,7 +8,7 @@ const sendRequest = function(method,url,callback,data){
 const refresh = function(){
   document.getElementById('item').innerText = '';
   location.reload();
-}
+};
 
 const loadPage = function(){
   if(this.responseText){
@@ -16,67 +16,87 @@ const loadPage = function(){
     location.reload();
   }
   return;
-}
+};
 
 const showMessage = function(){
   document.getElementById('message').innerText = 'Item required';
-}
+};
 
-const create = function(){
-  let item = document.getElementById('item').value;
+const addTodoItem = function(){
+  const item = document.getElementById('item').value;
+  const todoId = location.pathname.match(/[\d]+$/);
   if(!item){
     showMessage();
     return;
   }
-  let data = `item=${item}`;
-  sendRequest('post','/create',refresh,data);
+  const data = `todoId=${todoId}&item=${item}`;
+  sendRequest('post','/addTodoItem',refresh,data);
 };
 
 const getAllItem = function(){
-  sendRequest('post','/getAllItem',viewTodoItems,'');
+  const todoId = location.pathname.match(/[\d]+$/);
+  sendRequest('post','/getAllItem',viewTodoItems,`todoId=${todoId}`);
 };
 
 const updateStatus = function() {
-  let itemId = event.target.id;
+  const itemId = event.target.id;
   sendRequest('post','/updateItemStatus',refresh,`itemId=${itemId}`);
-}
+};
 
 const deleteItem = function(event){
-  let itemId = event.target.id;
+  const itemId = event.target.id;
   sendRequest('POST','/deleteItem',loadPage,`itemId=${itemId}`);
-}
+};
 
-const appendDeleteButtonToPara = function(para,id){
-  let deleteButton = document.createElement('button');
-  deleteButton.id = id;
-  deleteButton.onclick = deleteItem;
-  deleteButton.innerText = 'delete';
-  para.appendChild(deleteButton);
-  return para;
-}
+const saveItem = () => {
+  const id = event.target.id;
+  const text = document.getElementById(id).parentElement.childNodes[0].value;
+  const data = `id=${id}&text=${text}`;
+  sendRequest('post','/editItem',refresh,data);
+};
+
+const appendButton = function(parent,id,text,callback) {
+  const button = document.createElement('button');
+  button.id = id;
+  button.onclick = callback;
+  button.innerText = text;
+  parent.appendChild(button);
+  return parent;
+};
+
+const editItem = () => {
+  const id = event.target.id;
+  const item = document.getElementsByClassName(id)[0];
+  const para = item.parentElement;
+  const parent = para.parentElement;
+  let newPara = document.createElement('p');
+  const form = document.createElement('input');
+  form.value = item.innerText;
+  newPara.appendChild(form);
+  newPara = appendButton(newPara,id,'save',saveItem);
+  parent.replaceChild(newPara,para);
+};
 
 const viewTodoItems = function(){
-  let allTodo = JSON.parse(this.responseText);
-  let block = document.getElementById('items');
-  allTodo.forEach(item=>{
+  const allTodo = JSON.parse(this.responseText);
+  const block = document.getElementById('items');
+  allTodo.forEach((item) => {
     let para = document.createElement('p');
-    para.innerText = item.title;
+    const span = document.createElement('span');
+    span.innerText = item.title;
+    span.className = item.id;
+    para.appendChild(span);
     para.id = item.id;
-    let statusButton = document.createElement('button');
+    const statusButton = document.createElement('button');
     statusButton.id = item.id;
-    if(!item.status){
-      statusButton.innerText = "undone";
-      para.style= 'text-decoration: none';
-    }
-    else{
-      statusButton.innerText = "done";
-      para.style= 'text-decoration: line-through';
-    }
     statusButton.onclick = updateStatus;
+    statusButton.innerText = item.statusType;
+    item.status ? para.style= 'text-decoration: line-through' : para.style= 'text-decoration: none';
     para.appendChild(statusButton);
-    para = appendDeleteButtonToPara(para,item.id);
+    para = appendButton(para,item.id,'delete',deleteItem);
+    para = appendButton(para,item.id,'edit',editItem);
     block.appendChild(para);
   });
-}
+};
 
 window.onload = getAllItem;

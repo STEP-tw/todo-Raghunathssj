@@ -2,6 +2,5 @@
   "username": "tester",
   "name": "Tester",
   "allTodos": {},
-  "todoIdCounter": 0,
-  "currentTodo": {}
+  "todoIdCounter": 0
 }]

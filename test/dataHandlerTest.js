@@ -11,36 +11,36 @@ describe('dataHandler', () => {
         return path == './data/_userDetails.json';
       },
       readFileSync: (path, encoding) => {
-        let FileContents = {
+        const FileContents = {
           './data/_userDetails.json':'{"name":"arvinds"}',
           './filenotExist': '{"name":"admin"}'
-        }
-        return FileContents[path]
+        };
+        return FileContents[path];
       },
       appendFileSync: (path, data) => {
-        flagAppendFile = true
+        flagAppendFile = true;
       }
-    }
-    let dataHandler = new DataHandler(mockFs);
+    };
+    const dataHandler = new DataHandler(mockFs);
     it('should redeem details of all user of file exist', (done) => {
-      let userdata = dataHandler.redeemUsersDetails();
+      const userdata = dataHandler.redeemUsersDetails();
       assert.deepEqual(userdata, {
         name: "arvinds"
       });
-      assert.isNotOk(flagAppendFile)
-      done()
+      assert.isNotOk(flagAppendFile);
+      done();
     });
     it(`should redeem details of all user of file doesn't exist`, (done) => {
-      let userdata = dataHandler.redeemUsersDetails('./filenotExist');
+      const userdata = dataHandler.redeemUsersDetails('./filenotExist');
       assert.deepEqual(userdata, {
         name: "admin"
       });
       assert.ok(flagAppendFile);
-      done()
+      done();
     });
   });
 });
-describe('redeemUsersData', (done) => {
+describe('redeemUsersData', () => {
   let flagAppendFile = false;
   let writeData = '';
   const mockFs = {
@@ -48,29 +48,29 @@ describe('redeemUsersData', (done) => {
       return path == './data/_usersData.json';
     },
     readFileSync: (path, encoding) => {
-      let FileContents = {
-        './data/_usersData.json':'[{"username": "arvinds","name": "raghunath","allTodos": {},"todoIdCounter": 0,"currentTodo":{}}]',
-        './filenotExist': '[{"username": "admin","name": "Admin","allTodos": {},"todoIdCounter": 0,"currentTodo": {}}]'
-      }
+      const FileContents = {
+        './data/_usersData.json':'[{"username": "arvinds","name": "raghunath","allTodos": {},"todoIdCounter": 0}]',
+        './filenotExist': '[{"username": "admin","name": "Admin","allTodos": {},"todoIdCounter": 0}]'
+      };
       return FileContents[path];
     },
     appendFileSync: (path, data) => {
-      flagAppendFile = true
+      flagAppendFile = true;
     },
-    writeFileSync:(path,data,encoding)=>{
+    writeFileSync:(path,data,encoding) => {
       if(path=='./data/_usersData.json')
-      writeData += data;
+      {writeData += data;}
     }
-  }
-  let dataHandler = new DataHandler(mockFs);  
+  };
+  const dataHandler = new DataHandler(mockFs);  
   it('should return data of data file', (done) => {
-    let userData = dataHandler.redeemUsersData();
+    const userData = dataHandler.redeemUsersData();
     assert.deepEqual(userData,[new User('arvinds','raghunath')]);
     assert.isNotOk(flagAppendFile);
     done();
   });
   it('should return data of data file', (done) => {
-    let userData = dataHandler.redeemUsersData('./filenotExist');
+    const userData = dataHandler.redeemUsersData('./filenotExist');
     assert.deepEqual(userData, [new User('admin','Admin')]);
     assert.isOk(flagAppendFile);
     done();

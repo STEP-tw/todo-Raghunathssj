@@ -1,16 +1,14 @@
+
 const fs = require('fs');
 const express = require('express');
 const cookieparser = require('cookie-parser');
 const app = express();
 const bodyParser = require('body-parser');
-let parseText = require('./lib/utility/utility.js').parseText;
-const Users = require('./lib/models/users');
-const DataHandler = require('./lib/models/dataHandler');
 //=============================================
 
-let loadUser = (req, res,next) => {
-  let sessionid = req.cookies.sessionid
-  let user = app.users.getUserBySessionId(sessionid);
+const loadUser = (req, res,next) => {
+  const sessionid = req.cookies.sessionid;
+  const user = app.users.getUserBySessionId(sessionid);
   if (sessionid && user) {
     req.user = user;
   }
@@ -20,15 +18,15 @@ const getData = function(path, message) {
   let content = fs.readFileSync(path, 'utf8');
   content = content.replace(/message/, message);
   return content;
-}
+};
 
 const respondWithMsg = function(req, res, file) {
   let content = '';
-  let path = `./public${file}`;
+  const path = `./public${file}`;
   if (req.cookies.message)
-    content = getData(path, req.cookies.message);
+  {content = getData(path, req.cookies.message);}
   else
-    content = getData(path, '');
+  {content = getData(path, '');}
   res.statusCode = 200;
   res.setHeader('Content-Type','text/html');
   res.write(content);
@@ -36,14 +34,14 @@ const respondWithMsg = function(req, res, file) {
   return;
 };
 
-let forbiddenUrls = ['/', '/create', '/createItem', '/logout','/new','/createTodo','/deleteTodo','/getAllItem','/getAllTodo','/updateStatus'];
+const forbiddenUrls = ['/', '/addTodoItem', '/createItem', '/logout','/new','/createTodo','/deleteTodo','/getAllItem','/getAllTodo','/updateStatus'];
 
 const redirectForbiddenUrlsToLogin = (req,res,next) => {
   if (forbiddenUrls.includes(req.url) && !req.user || req.url.startsWith('/todo') && !req.user) {
     res.redirect('/login');
     res.send();
   }else
-    next();
+  {next();}
 };
 
 const redirectLoginUsersToHome = (req, res,next) => {
@@ -51,8 +49,8 @@ const redirectLoginUsersToHome = (req, res,next) => {
     res.redirect('/');
     return;
   }
-  next()
-}
+  next();
+};
 
 //==============================================================
 const homepage = (req, res) => {
@@ -68,7 +66,7 @@ const loginPage = (req, res) => {
 };
 
 const checkUser = (req, res) => {
-  let user = app.users.getUser(req.body.username,req.body.password);
+  const user = app.users.getUser(req.body.username,req.body.password);
   if (!user) {
     app.sessionHandler.failedLogin(res);
     res.redirect('/login');
@@ -79,22 +77,23 @@ const checkUser = (req, res) => {
 };
 
 const addItem = (req, res) => {
-  let item = req.body.item;
-  req.user.addTodoItem(item);
-  app.users.saveData()
+  const item = req.body.item;
+  const todoId = req.body.todoId;
+  req.user.addTodoItem(todoId,item);
+  app.users.saveData();
   res.statusCode = 200;
   res.end();
   return;
 };
 
 const todoPage = (req, res) => {
-  let title = req.body.title;
+  const title = req.body.title;
   if (!title) {
     res.setHeader('Set-Cookie', `message=Title required; Max-Age=5`);
     res.redirect('/new');
     return;
   }
-  let description = req.body.description;
+  const description = req.body.description;
   req.user.addTodo(title, description);
   res.redirect('/');
 };
@@ -108,18 +107,18 @@ const logoutPage = (req, res) => {
   res.redirect('/login');
 };
 
-const getAllTodo = (req,res)=>{
-  let allTodo = JSON.stringify(req.user.getAllTodo());
+const getAllTodo = (req,res) => {
+  const allTodo = JSON.stringify(req.user.getAllTodo());
   res.write(allTodo);
   res.end();
-}
+};
 
-const todoRequestHandler = (req,res,next)=>{
+const todoRequestHandler = (req,res,next) => {
   let todoKey = req.url.match(/[\d+]/);
   todoKey = todoKey && todoKey[0];
   if(req.url.startsWith('/todo') && req.user.isValidTodo(todoKey)){
-    let todoHtml = req.user.getTodoHtml(todoKey);
-    let formData = fs.readFileSync('./public/html/createItem.html','utf8');
+    const todoHtml = req.user.getTodoHtml(todoKey);
+    const formData = fs.readFileSync('./public/html/createItem.html','utf8');
     res.setHeader('Content-Type','text/html');
     res.statusCode = 200;
     res.write(formData);
@@ -127,44 +126,50 @@ const todoRequestHandler = (req,res,next)=>{
     res.end();
   }
   next();
-}
+};
 
-const getAllItem = (req,res)=>{
-  let allItem = JSON.stringify(req.user.getAllItem());
+const getAllItem = (req,res) => {
+  const todoId = req.body.todoId;
+  const allItem = JSON.stringify(req.user.getAllItem(todoId));
   res.write(allItem);
   res.end();
 };
 
-const deleteTodo = (req,res)=>{
-  let status = req.user.deleteTodo(req.body.todoId);
+const deleteTodo = (req,res) => {
+  const status = req.user.deleteTodo(req.body.todoId);
   res.write(status.toString());
-  app.users.saveData()
+  app.users.saveData();
   res.end();
 };
 
-const updateItemStatus = (req,res)=>{
-  let parsedIds = parseText(req.body.itemId,'_');
-  let todoId = parsedIds[0];
-  let itemId = req.body.itemId;
+const updateItemStatus = (req,res) => {
+  const todoId = req.body.itemId.split('_')[0];
+  const itemId = req.body.itemId;
   req.user.updateItemStatus(todoId,itemId);
-  app.users.saveData()
+  app.users.saveData();
   res.end();
-}
+};
 
-const deleteItem = (req,res)=>{
-  let parsedIds = parseText(req.body.itemId,'_');
-  let todoId = parsedIds[0];
-  let itemId = req.body.itemId;
-  let status = req.user.deleteItem(todoId,itemId);
+const deleteItem = (req,res) => {
+  const todoId = req.body.itemId.split('_')[0];
+  const itemId = req.body.itemId;
+  const status = req.user.deleteItem(todoId,itemId);
   res.write(status.toString());
-  app.users.saveData()
+  app.users.saveData();
   res.end();
-}
+};
+
+const editItem = (req,res) => {
+  const itemId = req.body.id;
+  req.user.editItem(itemId,req.body.text);
+  app.users.saveData();
+  res.end();
+};
 
 //=====================================================================
 app.use(cookieparser());
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use((req,res,next)=>app.logRequest(req,res,next));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use((req,res,next) => app.logRequest(req,res,next));
 app.use(loadUser);
 app.use(redirectForbiddenUrlsToLogin);
 app.use(redirectLoginUsersToHome);
@@ -176,7 +181,7 @@ app.get('/login', loginPage);
 app.get('/new', newTodoPage);
 
 app.post('/login', checkUser);
-app.post('/create', addItem);
+app.post('/addTodoItem', addItem);
 app.post('/logout', logoutPage);
 app.post('/createTodo', todoPage);
 app.post('/getAllTodo',getAllTodo);
@@ -184,5 +189,6 @@ app.post('/getAllItem',getAllItem);
 app.post('/deleteTodo',deleteTodo);
 app.post('/updateItemStatus',updateItemStatus);
 app.post('/deleteItem',deleteItem);
+app.post('/editItem',editItem);
 
 module.exports = app;
