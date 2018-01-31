@@ -1,6 +1,6 @@
 [{
-  "username": "tester",
-  "name": "Tester",
+  "username": "admin",
+  "name": "Admin",
   "allTodos": {},
   "todoIdCounter": 0
 }]
