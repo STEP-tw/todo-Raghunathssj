@@ -166,6 +166,20 @@ const editItem = (req,res) => {
   res.end();
 };
 
+const editTodoTitle = (req,res) => {
+  const todoId = req.body.id;
+  req.user.editTodoTitle(todoId,req.body.text);
+  app.users.saveData();
+  res.end();
+};
+
+const editTodoDesc = (req,res) => {
+  const todoId = req.body.id;
+  req.user.editTodoDesc(todoId,req.body.text);
+  app.users.saveData();
+  res.end();
+};
+
 //=====================================================================
 app.use(cookieparser());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -190,5 +204,7 @@ app.post('/deleteTodo',deleteTodo);
 app.post('/updateItemStatus',updateItemStatus);
 app.post('/deleteItem',deleteItem);
 app.post('/editItem',editItem);
+app.post('/editTodoTitle',editTodoTitle);
+app.post('/editTodoDesc',editTodoDesc);
 
 module.exports = app;

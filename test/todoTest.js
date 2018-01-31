@@ -56,4 +56,16 @@ describe('Todo',() => {
       assert.deepEqual(actual[0],expected);
     });
   });
+  describe('#editTitle',() => {
+    it('should edit the title of todo',() => {
+      todo.editTitle('tested title');
+      assert.equal(todo.title,'tested title');
+    });
+  });
+  describe('#editDesc',() => {
+    it('should edit the description of todo',() => {
+      todo.editDesc('tested description');
+      assert.equal(todo.description,'tested description');
+    });
+  });
 });

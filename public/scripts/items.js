@@ -64,6 +64,46 @@ const appendButton = function(parent,id,text,callback) {
   return parent;
 };
 
+const saveTodoDesc = () => {
+  const id = event.target.id;
+  const text = document.getElementById(id).parentElement.childNodes[0].value;
+  const data = `id=${id}&text=${text}`;
+  sendRequest('post','/editTodoDesc',refresh,data);
+};
+
+const editTodoDesc = () => {
+  const parent = event.target.parentElement;
+  const desc = parent.childNodes[0].innerText.split(': ')[1];
+  const id = location.pathname.match(/[\d]+$/);
+  let span = document.createElement('span');
+  const form = document.createElement('input');
+  form.value = desc;
+  span.appendChild(form);
+  span = appendButton(span,id,'save',saveTodoDesc);
+  span = appendButton(span,id,'cancel',refresh);
+  parent.parentElement.replaceChild(span,parent);
+};
+
+const saveTodoTitle = () => {
+  const id = event.target.id;
+  const text = document.getElementById(id).parentElement.childNodes[0].value;
+  const data = `id=${id}&text=${text}`;
+  sendRequest('post','/editTodoTitle',refresh,data);
+};
+
+const editTodoTitle = () => {
+  const parent = event.target.parentElement;
+  const title = parent.childNodes[0].innerText.split(': ')[1];
+  const id = location.pathname.match(/[\d]+$/);
+  let span = document.createElement('span');
+  const form = document.createElement('input');
+  form.value = title;
+  span.appendChild(form);
+  span = appendButton(span,id,'save',saveTodoTitle);
+  span = appendButton(span,id,'cancel',refresh);
+  parent.parentElement.replaceChild(span,parent);
+};
+
 const editItem = () => {
   const id = event.target.id;
   const item = document.getElementsByClassName(id)[0];
@@ -74,6 +114,7 @@ const editItem = () => {
   form.value = item.innerText;
   newPara.appendChild(form);
   newPara = appendButton(newPara,id,'save',saveItem);
+  newPara = appendButton(newPara,id,'cancel',refresh);  
   parent.replaceChild(newPara,para);
 };
 

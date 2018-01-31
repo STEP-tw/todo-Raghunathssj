@@ -1,0 +1,24 @@
+.loginBody{
+  background-color:skyblue;
+}
+
+.form{
+  background-color: white;
+  margin-left: 500px;
+  height: 500px;
+  width: 500px;
+}
+
+.heading{
+  margin-top: 100px;
+}
+
+.username{
+  padding-top: 100px;
+  font: "menlo"
+}
+
+.submit{
+  padding-top: 100px;
+  padding-left : 200px;
+}

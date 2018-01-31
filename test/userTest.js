@@ -55,7 +55,7 @@ describe('User', () => {
     it('should give user todo in html form', () => {
       user.addTodo('test', 'for testing');
       const todoHtml = user.getTodoHtml('0');
-      const expected = `<div><h1>Title : test</h1><h3>Description : for testing</h3><br><div id=items ></div ></div>`;
+      const expected = `<div><span><strong>Title : test</strong><button onclick='editTodoTitle()'>edit</button></span><br><span><strong>Description : for testing</strong><button onclick='editTodoDesc()'>edit</button></span><br><div id=items ></div ></div>`;
       assert.equal(todoHtml, expected);
     });
   });
@@ -109,6 +109,20 @@ describe('User', () => {
       user.deleteItem('0', '0_0');
       const item = user.getAllItem('0');
       assert.isEmpty(item);
+    });
+  });
+  describe('editTodoTitle', () => {
+    it('should edit title of todo', () => {
+      user.addTodo('test', 'for testing');
+      user.editTodoTitle('0','tested title');
+      assert.equal(user.allTodos[0].title,'tested title');
+    });
+  });
+  describe('editTodoDesc', () => {
+    it('should edit description of todo', () => {
+      user.addTodo('test', 'for testing');
+      user.editTodoDesc('0','tested description');
+      assert.equal(user.allTodos[0].description,'tested description');
     });
   });
 });

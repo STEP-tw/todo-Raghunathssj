@@ -2,14 +2,25 @@
 <html>
   <head>
     <meta>
-    <title>TODO login</title>
+    <title>Login in todo app</title>
   </head>
-  <body>
-    <div><b>message</b></div>
-    <form action="/login" method="post">
-      User Name: <input type="text" name="username" placeholder="enter your user name" autofocus required><br>
-      Password: <input type="password" name="password" placeholder="enter password" required><br>
-      <input type="submit" value="submit">
-    </form>
+  <body align="center" class="loginBody">
+      <h1 align="center" class="heading">LOGIN FOR TODO APP</h1>
+    <div align="center" class="form">
+        <div><b>message</b></div>
+        <form action="/login" method="post">
+          <div class="username">
+          <h2> USER NAME:</h2>
+          <input type="text" name="username" placeholder="enter your user name" autofocus required><br>
+          </div>
+          <div class="password">
+              <h2>PASSWORD:</h2> <input type="password" name="password" placeholder="enter password" required><br>
+          </div>
+          <div class="submit">
+              <input type="submit" value="submit">
+          </div>
+        </form>
+    </div>
+
   </body>
 </html>

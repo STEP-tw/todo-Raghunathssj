@@ -2,9 +2,17 @@ const request = require('supertest');
 const MockSessionHandler = require('./mockSessionHandler');
 const Mockusers = require('./mockusers');
 const app = require('../app.js');
+const assert = require('chai').assert;
 app.logRequest = (req, res, next) => {
   next();
 };
+
+const isExists = (text, textToBeCompared) => {
+  console.log(app.users.usersTodos[0].allTodos[0]);
+  assert.equal(text,textToBeCompared);
+  return;
+};
+
 app.sessionHandler = new MockSessionHandler();
 describe('app', () => {
   beforeEach(() => {
@@ -291,6 +299,28 @@ describe('app', () => {
         .set('cookie','sessionid=1234')
         .send('id=0_0&text=changed')
         .expect(200)
+        .end(done); 
+    });
+  });
+  describe('POST /editTodoTitle',() => {
+    it('should replace the title todo with given title',(done) => {
+      request(app)
+        .post('/editTodoTitle')
+        .set('cookie','sessionid=1234')
+        .send('id=0&text=tested title')
+        .expect(200)
+        .expect((res) => isExists(app.users.usersTodos[0].allTodos[0].title,'tested title'))
+        .end(done); 
+    });
+  });
+  describe('POST /editTodoDesc',() => {
+    it('should replace the description todo with given description',(done) => {
+      request(app)
+        .post('/editTodoDesc')
+        .set('cookie','sessionid=1234')
+        .send('id=0&text=tested desc')
+        .expect(200)
+        .expect((res) => isExists(app.users.usersTodos[0].allTodos[0].description,'tested desc'))
         .end(done); 
     });
   });

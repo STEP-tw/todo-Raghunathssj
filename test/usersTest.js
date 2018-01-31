@@ -43,4 +43,9 @@ describe('Users',() => {
       assert.isUndefined(users.getUserBySessionId('1234567'));
     });
   });
+  describe('#saveData', () => {
+    it('should save data in database', () => {
+      assert.isUndefined(users.saveData());  
+    });
+  });
 });
